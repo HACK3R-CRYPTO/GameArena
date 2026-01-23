@@ -1,0 +1,22 @@
+# Environment variables (contains secrets)
+.env
+
+# Foundry build artifacts
+out/
+cache/
+
+# Deployment logs
+broadcast/
+
+# Dependencies (managed by forge)
+lib/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
