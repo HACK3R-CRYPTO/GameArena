@@ -75,6 +75,23 @@ function TournamentBrowser() {
         console.log(`Tournament ${index + 1} data:`, tournament);
         
         const statusMap = ['UPCOMING', 'LIVE', 'ENDED', 'CANCELLED'];
+        const startTime = Number(tournament.startTime) * 1000;
+        const endTime = Number(tournament.endTime) * 1000;
+        const now = Date.now();
+        
+        // Determine actual status based on time and contract status
+        let actualStatus = statusMap[tournament.status] || 'UPCOMING';
+        
+        // Override status based on current time if not cancelled
+        if (actualStatus !== 'CANCELLED') {
+          if (now < startTime) {
+            actualStatus = 'UPCOMING';
+          } else if (now >= startTime && now < endTime) {
+            actualStatus = 'LIVE';
+          } else if (now >= endTime) {
+            actualStatus = 'ENDED';
+          }
+        }
         
         return {
           id: Number(tournament.id),
@@ -85,9 +102,9 @@ function TournamentBrowser() {
           prizePool: formatEther(tournament.prizePool),
           maxParticipants: Number(tournament.maxParticipants),
           currentParticipants: 0, // TODO: Fetch participants count
-          startTime: Number(tournament.startTime) * 1000,
-          endTime: Number(tournament.endTime) * 1000,
-          status: statusMap[tournament.status] || 'UPCOMING',
+          startTime: startTime,
+          endTime: endTime,
+          status: actualStatus,
         };
       })
       .filter(Boolean);

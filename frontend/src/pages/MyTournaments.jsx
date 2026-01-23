@@ -33,7 +33,7 @@ function MyTournaments() {
   // Build array of contract calls to fetch all tournaments
   // Note: getPlayerTournaments only returns tournaments where user joined (paid entry fee)
   // To show created tournaments, we need to fetch all and filter by creator
-  const tournamentIds = tournamentCounter ? Array.from({ length: Number(tournamentCounter) }, (_, i) => i + 1) : [];
+  const tournamentIds = tournamentCounter ? Array.from({ length: Number(tournamentCounter) }, (_, i) => i) : [];
   const tournamentCalls = tournamentIds.map(id => ({
     address: CONTRACT_ADDRESSES.TOURNAMENT_PLATFORM,
     abi: TOURNAMENT_PLATFORM_ABI,
@@ -91,12 +91,31 @@ function MyTournaments() {
         });
     }
 
-    tournamentsData.forEach((item) => {
-      if (item.status !== 'success' || !item.result) return;
+    tournamentsData.forEach((item, index) => {
+      if (item.status !== 'success' || !item.result) {
+        console.log(`Tournament ${index} failed or has no result:`, item);
+        return;
+      }
 
       const tournament = item.result;
       const statusMap = ['UPCOMING', 'LIVE', 'ENDED', 'CANCELLED'];
       const tournamentId = Number(tournament.id);
+      
+      const startTime = Number(tournament.startTime) * 1000;
+      const endTime = Number(tournament.endTime) * 1000;
+      const now = Date.now();
+      
+      // Determine actual status based on time
+      let actualStatus = statusMap[tournament.status] || 'UPCOMING';
+      if (actualStatus !== 'CANCELLED') {
+        if (now < startTime) {
+          actualStatus = 'UPCOMING';
+        } else if (now >= startTime && now < endTime) {
+          actualStatus = 'LIVE';
+        } else if (now >= endTime) {
+          actualStatus = 'ENDED';
+        }
+      }
       
       const userScoreData = scoresMap[tournamentId];
       const myScore = userScoreData ? Number(userScoreData.score) : 0;
@@ -110,9 +129,9 @@ function MyTournaments() {
         prizePool: formatEther(tournament.prizePool),
         maxParticipants: Number(tournament.maxParticipants),
         currentParticipants: 0, // TODO: Fetch real participant count if needed
-        status: statusMap[tournament.status] || 'UPCOMING',
-        startTime: Number(tournament.startTime) * 1000,
-        endTime: Number(tournament.endTime) * 1000,
+        status: actualStatus,
+        startTime: startTime,
+        endTime: endTime,
         myScore: myScore,
         myRank: null, // Rank requires fetching all scores, skipping for now
         potentialPrize: '0', // Mock
@@ -121,18 +140,30 @@ function MyTournaments() {
 
       const isCreator = tournament.creator.toLowerCase() === address.toLowerCase();
       const hasJoined = playerIdSet.has(tournamentId);
+      
+      console.log(`Tournament ${tournamentId}:`, {
+        name: tournament.name,
+        creator: tournament.creator,
+        userAddress: address,
+        isCreator,
+        hasJoined,
+        playerIdSet: Array.from(playerIdSet)
+      });
 
       // Add to created if user is creator
       if (isCreator) {
         created.push(processedTournament);
+        console.log(`Added tournament ${tournamentId} to created`);
       }
       
       // Add to joined if user joined
       if (hasJoined) {
         joined.push(processedTournament);
+        console.log(`Added tournament ${tournamentId} to joined`);
       }
     });
 
+    console.log('Final counts - Joined:', joined.length, 'Created:', created.length);
     return { joined, created };
   }, [tournamentsData, address, playerTournamentIds, scoresData]);
 

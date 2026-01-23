@@ -16,15 +16,24 @@ function Leaderboard() {
   });
 
   const leaderboard = useMemo(() => {
-    if (!arcadeData) return [];
+    if (!arcadeData || arcadeData.length === 0) {
+      console.log('No leaderboard data available');
+      return [];
+    }
 
-    const data = arcadeData.map(item => ({
-      address: item.player,
-      score: Number(item.score),
-      tournaments: 1, 
-      avgRank: 1, 
-      winRate: 100
-    }));
+    console.log('Raw arcade data:', arcadeData);
+    
+    const data = arcadeData
+      .filter(item => item.player && item.score) // Filter out invalid entries
+      .map(item => ({
+        address: item.player,
+        score: Number(item.score),
+        tournaments: 1, 
+        avgRank: 1, 
+        winRate: 100
+      }));
+
+    console.log('Processed leaderboard data:', data);
 
     return data.sort((a, b) => b.score - a.score).map((item, index) => ({
       ...item,
@@ -66,8 +75,15 @@ function Leaderboard() {
 
         <div className="mb-8 sm:mb-10 md:mb-12 glass-strong rounded-2xl p-4 sm:p-6 md:p-8 border border-purple-500/30 animate-slide-up" style={{ animationDelay: '0.1s' }}>
           <h2 className="mt-0 mb-6 sm:mb-8 text-xl sm:text-2xl md:text-3xl font-black text-center">🏆 Top Champions 🏆</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+          {leaderboard.length === 0 ? (
+            <div className="text-center py-12 sm:py-16">
+              <div className="text-5xl sm:text-6xl md:text-7xl mb-4 sm:mb-6">🎮</div>
+              <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-3 sm:mb-4">No Players Yet!</h3>
+              <p className="text-sm sm:text-base text-white/60 max-w-md mx-auto">
+                Be the first to play and set a high score in the Wave Defense game!
+              </p>
+            </div>
+          ) : (          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
             {/* 2nd Place */}
             <div className="glass-strong rounded-2xl p-4 sm:p-5 md:p-6 border-2 border-gray-400/50 text-center md:h-[280px] flex flex-col justify-end transform md:-translate-y-4 hover:scale-105 transition-all animate-slide-up" style={{ animationDelay: '0.2s' }}>
               <div className="mb-3 sm:mb-4 text-4xl sm:text-5xl md:text-6xl animate-float" style={{ animationDelay: '0.5s' }}>🥈</div>
@@ -119,8 +135,10 @@ function Leaderboard() {
               </div>
             </div>
           </div>
+          )}
         </div>
 
+        {leaderboard.length > 3 && (
         <div className="glass rounded-2xl border border-white/10 overflow-hidden animate-slide-up" style={{ animationDelay: '0.3s' }}>
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -167,6 +185,7 @@ function Leaderboard() {
             </table>
           </div>
         </div>
+        )}
 
         <div className="mt-8 text-center text-white/60">
           <p>Showing {leaderboard.length} players • Global Arcade Rankings</p>

@@ -101,6 +101,49 @@ const WaveDefenseGame = () => {
     const [dotsToCollect, setDotsToCollect] = useState(10);
     const [baseHealth, setBaseHealth] = useState(100);
 
+    // Sound Effects - Using Web Audio API for better browser compatibility
+    const soundsRef = useRef({
+        shoot: null,
+        hit: null,
+        collect: null,
+        gameOver: null
+    });
+    
+    // Initialize sounds
+    useEffect(() => {
+        // Create audio context for sound effects
+        const createBeep = (frequency, duration, volume = 0.3) => {
+            return () => {
+                try {
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.value = frequency;
+                    oscillator.type = 'square';
+                    
+                    gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+                    
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + duration);
+                } catch (e) {
+                    console.log('Audio not supported:', e);
+                }
+            };
+        };
+
+        soundsRef.current = {
+            shoot: createBeep(400, 0.05, 0.1),      // Short high beep for shooting
+            hit: createBeep(200, 0.1, 0.15),        // Lower beep for hits
+            collect: createBeep(800, 0.08, 0.2),    // High pitched for collecting
+            gameOver: createBeep(100, 0.5, 0.3)     // Low long beep for game over
+        };
+    }, []);
+
     // Refs for game loop to avoid stale closures
     const waveProgressRef = useRef(0);
     const dotsToCollectRef = useRef(10);
@@ -272,6 +315,11 @@ const WaveDefenseGame = () => {
                     damage: totalDamage > 0 ? totalDamage : 5 // Fallback
                 });
                 lastShotTimeRef.current = now;
+                
+                // Play shoot sound
+                if (soundsRef.current.shoot) {
+                    soundsRef.current.shoot();
+                }
             }
 
             // 4. Update Bullets
@@ -314,6 +362,12 @@ const WaveDefenseGame = () => {
                     setScore(prev => prev + 50);
                     waveProgressRef.current += 1;
                     setWaveProgress(waveProgressRef.current);
+                    
+                    // Play collect sound
+                    if (soundsRef.current.collect) {
+                        soundsRef.current.collect();
+                    }
+                    
                     return false;
                 }
                 return true;
@@ -335,6 +389,11 @@ const WaveDefenseGame = () => {
                     if (baseHealthRef.current <= 0) {
                         setGameState('gameover');
                         setSurvivalTime(Math.floor((Date.now() - startTimeRef.current) / 1000));
+                        
+                        // Play game over sound
+                        if (soundsRef.current.gameOver) {
+                            soundsRef.current.gameOver();
+                        }
                     }
                 }
 
@@ -346,6 +405,11 @@ const WaveDefenseGame = () => {
                         if (newHealth <= 0) {
                             setGameState('gameover');
                             setSurvivalTime(Math.floor((Date.now() - startTimeRef.current) / 1000));
+                            
+                            // Play game over sound
+                            if (soundsRef.current.gameOver) {
+                                soundsRef.current.gameOver();
+                            }
                         }
                         return newHealth;
                     });
@@ -357,6 +421,12 @@ const WaveDefenseGame = () => {
                     if (distToBullet < e.radius + bullet.radius) {
                         e.health -= bullet.damage || power; // Use bullet specific damage if available
                         bulletsRef.current.splice(bIdx, 1);
+                        
+                        // Play hit sound
+                        if (soundsRef.current.hit) {
+                            soundsRef.current.hit();
+                        }
+                        
                         if (e.health <= 0) {
                             dotsRef.current.push({
                                 x: e.x, y: e.y, radius: 6, color: '#4ade80'
