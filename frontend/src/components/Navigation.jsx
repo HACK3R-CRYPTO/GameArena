@@ -59,13 +59,7 @@ function Navigation() {
   };
 
   const navLinks = [
-    { path: '/', label: 'Home' },
-    { path: '/tournaments', label: 'Tournaments' },
-    { path: '/mini-games', label: 'Mini Games' },
-    { path: '/my-tournaments', label: 'My Tournaments' },
-    { path: '/lottery', label: 'Lottery' },
-    { path: '/leaderboard', label: 'Leaderboard' },
-    { path: '/profile', label: 'Profile' }
+    { path: '/', label: 'Arena' }
   ];
 
   return (
@@ -74,8 +68,8 @@ function Navigation() {
         <div className="flex items-center justify-between gap-1.5 sm:gap-2 md:gap-4 lg:gap-8">
           {/* Logo */}
           <Link to="/" className="flex items-center flex-shrink-0 min-w-0 gap-1 text-sm font-bold no-underline transition-transform sm:gap-2 sm:text-lg md:text-xl hover:scale-105">
-            <span className="text-lg sm:text-2xl md:text-3xl">⚡</span>
-            <span className="hidden text-xs truncate text-gradient xs:inline sm:inline sm:text-sm md:text-base">GameArena</span>
+            <span className="text-lg sm:text-2xl md:text-3xl">⚔️</span>
+            <span className="hidden text-xs truncate text-gradient xs:inline sm:inline sm:text-sm md:text-base">ArenaAgent</span>
           </Link>
 
           {/* Desktop Navigation - Improved responsive breakpoints */}
@@ -95,8 +89,8 @@ function Navigation() {
           </div>
 
           {/* Tablet Navigation - Hidden on mobile, shown on medium screens */}
-          <div className="items-center justify-center flex-1 hidden gap-1 md:flex lg:hidden">
-            {navLinks.slice(0, 4).map((link) => (
+          <div className="items-center justify-center flex-1 hidden md:flex lg:hidden">
+            {navLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
@@ -108,12 +102,6 @@ function Navigation() {
                 {link.label}
               </Link>
             ))}
-            <button
-              className="px-2 py-1.5 text-xs font-medium text-white/60 transition-all rounded-lg hover:text-white hover:bg-white/5"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              More
-            </button>
           </div>
 
           {/* Authentication Section - Responsive */}
@@ -146,7 +134,7 @@ function Navigation() {
 
           {/* Mobile Menu Button - Improved */}
           <button
-            className="flex-shrink-0 p-1.5 text-white md:hidden lg:block lg:hidden"
+            className="flex-shrink-0 p-1.5 text-white lg:hidden"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
           >

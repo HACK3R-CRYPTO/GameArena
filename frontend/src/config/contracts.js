@@ -1,13 +1,35 @@
-// Contract addresses deployed on Sepolia testnet
+// Contract addresses
 export const CONTRACT_ADDRESSES = {
-  WINNER_BADGE: '0xb3e19d1215423abadb0a9105c61618aec6b02be6',
-  TOURNAMENT_PLATFORM: '0x14b2303f4eb388e2842e61f1e3b88bcadee3cc73',
-  GOLD_TOKEN: '0x0bd3180bd740e8fb560329ea42f46f65aa5b242d',
-  DIAMOND_TOKEN: '0xc6d677f0fcb8343ee09063b6849aa40e1fc99bc5',
-  GAME_ASSETS: '0xa1dbb68470cce59218e8495f5350ffc8c8e36110',
-  GAME_LOTTERY: '0xd06fce565798942949ae735f5e588fbf9e96afda',
-  ARCADE_PLATFORM: '0x214124ae23b415b3AEA3bb9e260A56dc022bAf04'
+  WINNER_BADGE: '0xcE11B94ccE5DdDaE8556C83F6b1b7c241862a165',
+  TOURNAMENT_PLATFORM: '0x3190d0bb2f983E407F62DeA4e557bCE73ec7E825',
+  GOLD_TOKEN: '0x843182a7a7a4c43cb7fd0d6566088575ef041ffb',
+  DIAMOND_TOKEN: '0x24642ffabf43d4bd33e1e883a23e10ddfde186c6',
+  GAME_ASSETS: '0x0fC01Df600f960d94A2196913bD3a0F2577eF168',
+  GAME_LOTTERY: '0x631d234ea1b750540D546b435903a6cde777Ee82',
+  ARCADE_PLATFORM: '0xDc8d900E64c5891b0A5D7dF0aFF4e581ee448aFE',
+  ARENA_PLATFORM: '0x7820903fC53197Ce02bDf9785AC04dd8e891BBb7', // MAINNET
+  AI_AGENT: '0xa91D5A0a64ED5eeF11c4359C4631279695A338ef',
+  ARENA_TOKEN: '0x1D3a53f0F52053D301374647e70B87279D5F7777', // MAINNET
+  AGENT_REGISTRY: '0x95884fe0d2a817326338735Eb4f24dD04Cf20Ea7' // MAINNET
 };
+
+export const AGENT_REGISTRY_ABI = [
+  {
+    "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "name": "agents",
+    "outputs": [
+      { "internalType": "string", "name": "name", "type": "string" },
+      { "internalType": "string", "name": "model", "type": "string" },
+      { "internalType": "string", "name": "description", "type": "string" },
+      { "internalType": "string", "name": "metadataUri", "type": "string" },
+      { "internalType": "address", "name": "owner", "type": "address" },
+      { "internalType": "uint256", "name": "registeredAt", "type": "uint256" },
+      { "internalType": "bool", "name": "active", "type": "bool" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+];
 
 export const GAME_LOTTERY_ABI = [
   {
@@ -597,5 +619,311 @@ export const ARCADE_PLATFORM_ABI = [
   }
 ];
 
-// Sepolia Chain ID
+export const ARENA_PLATFORM_ABI = [
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "matchId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "player",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint8",
+        "name": "move",
+        "type": "uint8"
+      }
+    ],
+    "name": "MovePlayed",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_treasury",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "matchId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "opponent",
+        "type": "address"
+      }
+    ],
+    "name": "MatchAccepted",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "matchId",
+        "type": "uint256"
+      }
+    ],
+    "name": "MatchCancelled",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "matchId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "winner",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "prize",
+        "type": "uint256"
+      }
+    ],
+    "name": "MatchCompleted",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "matchId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "challenger",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "opponent",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "wager",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "enum ArenaPlatform.GameType",
+        "name": "gameType",
+        "type": "uint8"
+      }
+    ],
+    "name": "MatchProposed",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_matchId",
+        "type": "uint256"
+      }
+    ],
+    "name": "acceptMatch",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_matchId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint8",
+        "name": "_move",
+        "type": "uint8"
+      }
+    ],
+    "name": "playMove",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_matchId",
+        "type": "uint256"
+      }
+    ],
+    "name": "cancelMatch",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_player",
+        "type": "address"
+      }
+    ],
+    "name": "getPlayerMatches",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "matchCounter",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "matches",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "challenger",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "opponent",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "wager",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint8",
+        "name": "gameType",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint8",
+        "name": "status",
+        "type": "uint8"
+      },
+      {
+        "internalType": "address",
+        "name": "winner",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "createdAt",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_opponent",
+        "type": "address"
+      },
+      {
+        "internalType": "uint8",
+        "name": "_gameType",
+        "type": "uint8"
+      }
+    ],
+    "name": "proposeMatch",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_matchId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "_winner",
+        "type": "address"
+      }
+    ],
+    "name": "resolveMatch",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+];
+
+// Chain IDs
 export const SEPOLIA_CHAIN_ID = 11155111;
+export const MONAD_TESTNET_CHAIN_ID = 10143;

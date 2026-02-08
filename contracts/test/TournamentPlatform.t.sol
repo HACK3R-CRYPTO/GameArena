@@ -26,12 +26,21 @@ contract TournamentPlatformTest is Test {
         
         // Deploy WinnerBadge first
         WinnerBadge winnerBadge = new WinnerBadge();
+        GoldToken goldToken = new GoldToken();
+        DiamondToken diamondToken = new DiamondToken();
         
-        // Deploy TournamentPlatform with both addresses
-        platform = new TournamentPlatform(treasury, address(winnerBadge));
+        // Deploy TournamentPlatform with required addresses
+        platform = new TournamentPlatform(
+            treasury, 
+            address(winnerBadge),
+            address(goldToken),
+            address(diamondToken)
+        );
         
-        // Authorize platform to mint badges
+        // Authorize platform to mint badges and tokens
         winnerBadge.authorizeMinter(address(platform));
+        goldToken.addMinter(address(platform));
+        diamondToken.addMinter(address(platform));
         
         // Fund test accounts
         vm.deal(creator, 100 ether);

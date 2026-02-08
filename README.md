@@ -1,83 +1,104 @@
-# TournamentChain
+# ⚔️ ArenaAgent: AI-Powered Gaming Arena (Monad Mainnet)
 
-Compete in tournaments. Win crypto prizes. Own your assets. A decentralized gaming platform built for true digital ownership.
+ArenaAgent is a high-performance gaming platform on Monad where players challenge a sophisticated AI agent in high-stakes matches.
 
-## What You Get
+## 🚀 Live Arena
 
-You play games. You compete in tournaments. You win Gold and Diamond tokens. Your assets are NFTs. Your rank is on-chain. No centralized gatekeepers. No lost items. Pure skill-based competition.
+Access the arena at: `http://localhost:5173`
 
-## How It Works
+## 🎮 Game Modes
 
-Connect your wallet. Mint your starter assets. Join a tournament. Play Wave Defense. Survive longer than others. Submit your score. Claim your prize. All powered by smart contracts.
+The Arena features 4 high-speed games:
 
-## Your First Game
+1.  **Rock-Paper-Scissors**: Classic strategy with pattern recognition. **Player Wins Ties!**
+2.  **Dice Roll**: High-stakes randomness. **Player Wins Ties!**
+3.  **Strategy Battle**: Tactical selection from 0-9. **Player Wins Ties!**
+4.  **Coin Flip**: Pure prediction. **Player Wins Ties!**
 
-Step one: Connect your wallet. Use MetaMask or Social Login. Switch to Sepolia Testnet.
+## 🧠 AI Agent (Markov Chain)
 
-Step two: Mint Free Tokens. Go to Profile. Use the Faucet. Get Gold and Diamond tokens for testing.
+The Arena uses a 1-st order Markov Chain to analyze player behavior:
+- **Pattern Matching**: The agent tracks your move history to predict your next move.
+- **Dynamic Response**: The more you play, the smarter it gets.
+- **Tie-Breaker**: All games are weighted in favor of the player—on any tie, the player wins!
 
-Step three: Mint Assets. Mint your first Weapon and Skin. These are ERC-1155 NFTs. They live in your wallet.
+## 📦 Getting Started
 
-Step four: Join a Tournament. Browse active tournaments. Pay the entry fee in Gold.
+1. **Install Dependencies**:
+   ```bash
+   cd TournamentChain && npm install
+   cd frontend && npm install
+   ```
 
-Step five: Play Wave Defense. Defend against waves of enemies. Survive as long as you can. Your score is verified on-chain.
+2. **Configure Environment**:
+   Ensure your `.env` in `TournamentChain/` has your `PRIVATE_KEY` for the agent.
 
-Step six: Claim Rewards. If you place in the top ranks, the prize pool is yours. Gold and Diamonds are sent directly to your wallet.
+3. **Start the Agent**:
+   ```bash
+   npm run agent
+   ```
 
-## Games
+4. **Launch the Frontend**:
+   ```bash
+   cd frontend && npm run dev
+   ```
 
-Wave Defense: A fast-paced survival shooter. Fight off waves of ghosts, spiders, and imps. Upgrade your weapons. Use your NFT skins. The longer you survive, the higher your score.
-
-Arcade Mode: Free-to-play practice. Compete on the Global Leaderboard. Prove your skills before entering high-stakes tournaments.
-
-## Real-Time Features
-
-Leaderboard updates instantly. See your rank change as scores come in. Tournament status updates live. Know exactly when a tournament ends and when prizes are ready.
+Our **Arena Champion AI** is a sophisticated autonomous player that:
+- **Learns Patterns**: Uses a 1st-order Markov Chain model to track your previous moves and predict your next one.
+- **Transparent Logic**: Detailed battle logs in terminal show exactly what the AI played and why.
+- **Player Advantage**: Features a 100% "Player Wins Ties" rule to ensure a fair and fun gaming experience.
+- **Autonomous Resolution**: Monitors the blockchain 24/7 to accept challenges and resolve matches instantly.
 
 ## Key Features
 
-- **NFT Assets**: Weapons and skins are ERC-1155 tokens. Trade them. Sell them. Use them across games.
-- **Dual-Token Economy**: Gold (Entry Fees) and Diamonds (Premium Rewards).
-- **On-Chain Reputation**: Your wins are recorded forever. Winner Badges (SBTs) prove your victories.
-- **Anti-Cheat**: Scores are cryptographically signed and verified.
+- **EIP-8004 Compliant**: The agent is registered on-chain with verifiable metadata.
+- **Dual-Token Economy**: $ARENA token integration powered by Monad.
+- **On-Chain Reputation**: Your wins are recorded forever.
+- **Anti-Cheat**: All moves and logic are processed via smart contracts and verified agent logic.
 
 ## Technical Excellence
 
-Built with React and Phaser. Powered by Solidity. Secured by OpenZeppelin. Fast, responsive, and fully decentralized. No backend servers for game logic. Everything is on-chain.
+Built with React and Phaser. Powered by Solidity. Secured by OpenZeppelin. Fast, responsive, and fully decentralized on Monad.
 
 ## Getting Started
 
-Frontend: Navigate to frontend folder. Run npm install. Run npm run dev. Visit localhost:5173.
+### 1. Frontend
+```bash
+cd frontend
+npm install
+npm run dev
+# Visit http://localhost:5173
+```
 
-Contracts: See contracts README for setup. Deploy to Sepolia. Update frontend addresses.
+### 2. AI Agent
+```bash
+cd agent
+npm install
+# Configure .env with your PRIVATE_KEY
+npm start
+```
 
-## Deployed Contracts
+## Deployed Contracts (Monad Testnet)
 
-Sepolia Testnet:
-
-- **TournamentPlatform**: `0x14b2303f4eb388e2842e61f1e3b88bcadee3cc73`
-- **GameAssets**: `0xa1dbb68470cce59218e8495f5350ffc8c8e36110`
-- **GoldToken**: `0x0bd3180bd740e8fb560329ea42f46f65aa5b242d`
-- **DiamondToken**: `0xc6d677f0fcb8343ee09063b6849aa40e1fc99bc5`
-- **ArcadePlatform**: `0x214124ae23b415b3AEA3bb9e260A56dc022bAf04`
-- **WinnerBadge**: `0xb3e19d1215423abadb0a9105c61618aec6b02be6`
-- **GameLottery**: `0xd06fce565798942949ae735f5e588fbf9e96afda`
+- **ArenaPlatform (v6)**: `0x9C077926Eea6D5945fC8Ebc29F0f3ab33d976867`
+- **Arena AI Agent**: `0xa91D5A0a64ED5eeF11c4359C4631279695A338ef`
+- **TournamentPlatform**: `0x3190d0bb2f983E407F62DeA4e557bCE73ec7E825`
+- **GameAssets**: `0x0fC01Df600f960d94A2196913bD3a0F2577eF168`
+- **GoldToken**: `0x843182a7a7a4c43cb7fd0d6566088575ef041ffb`
+- **DiamondToken**: `0x24642ffabf43d4bd33e1e883a23e10ddfde186c6`
+- **ArcadePlatform**: `0xDc8d900E64c5891b0A5D7dF0aFF4e581ee448aFE`
+- **WinnerBadge**: `0xcE11B94ccE5DdDaE8556C83F6b1b7c241862a165`
+- **GameLottery**: `0x631d234ea1b750540D546b435903a6cde777Ee82`
 
 ## Documentation
 
-[Contracts README](contracts/README.md): Smart contract setup and deployment details.
+[Gaming Arena Task](GAMING_ARENA_AGENT_TASK.md): Deep dive into the AI Agent strategy and implementation.
 
 [Frontend README](frontend/README.md): Frontend setup and feature documentation.
 
 ## Future Roadmap
 
-We are just getting started. Wave Defense is the MVP. Here is what comes next:
+- **Advanced AI**: Moving to Deep Reinforcement Learning (DRL) for more complex game states.
+- **More Mini-Games**: Flappy Bird, Tower Defense, and Puzzle games integration.
+- **Advanced Anti-Cheat**: Implementing Zero-Knowledge Proofs (ZKPs) for score verification.
 
-- **More Mini-Games**: The infrastructure is ready. We will add Flappy Bird, Tower Defense, and Puzzle games. The "Mini Games" section is already in the codebase.
-- **In-Game Shop**: A dedicated marketplace. Buy potions. Upgrade weapons. Trade skins directly with other players.
-- **Advanced Anti-Cheat**: Moving beyond signature verification. We plan to implement Zero-Knowledge Proofs (ZKPs) to validate game logic on-chain without revealing secrets.
-- **Expanded Leaderboards**: Weekly leagues. Clan wars. Seasonal rankings with massive prize pools.
-
-## Built for Hackathon
-
-TournamentChain built for the Gaming & Entertainment Track. Solves asset ownership. Solves payout trust. Solves interoperability. Ready for players.
