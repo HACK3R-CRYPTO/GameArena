@@ -22,8 +22,15 @@ const REGISTRY_ABI = parseAbi([
     "function agents(address) view returns (string name, string model, string description, string metadataUri, address owner, uint256 registeredAt, bool active)"
 ]);
 
-const ARENA_ADDRESS = '0x7820903fC53197Ce02bDf9785AC04dd8e891BBb7';
+const ARENA_ADDRESS = (process.env.VITE_ARENA_PLATFORM_ADDRESS || '0x7820903fC53197Ce02bDf9785AC04dd8e891BBb7') as `0x${string}`;
 const REGISTRY_ADDRESS = '0x95884fe0d2a817326338735Eb4f24dD04Cf20Ea7';
+
+if (!process.env.PRIVATE_KEY) {
+    console.error(chalk.red("FATAL: PRIVATE_KEY environment variable is not set."));
+    console.log(chalk.yellow("On Railway, please add PRIVATE_KEY to your Service variables in the Dashboard."));
+    process.exit(1);
+}
+
 const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`;
 const account = privateKeyToAccount(PRIVATE_KEY);
 
@@ -33,8 +40,8 @@ const MONAD_TESTNET = {
     network: 'monad-testnet',
     nativeCurrency: { name: 'MON', symbol: 'MON', decimals: 18 },
     rpcUrls: {
-        default: { http: ['https://testnet-rpc.monad.xyz'] },
-        public: { http: ['https://testnet-rpc.monad.xyz'] },
+        default: { http: [process.env.VITE_RPC_URL || 'https://testnet-rpc.monad.xyz'] },
+        public: { http: [process.env.VITE_RPC_URL || 'https://testnet-rpc.monad.xyz'] },
     }
 };
 
