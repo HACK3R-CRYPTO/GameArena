@@ -1,104 +1,104 @@
-# ⚔️ ArenaAgent: AI-Powered Gaming Arena (Monad Mainnet)
+# ⚔️ Arena AI Champion: The First Autonomous Gaming Agent on Monad
 
-ArenaAgent is a high-performance gaming platform on Monad where players challenge a sophisticated AI agent in high-stakes matches.
+[![Monad Testnet](https://img.shields.io/badge/Network-Monad%20Testnet-blueviolet)](https://monad.xyz/)
+[![Agent Track](https://img.shields.io/badge/Moltiverse%20Hackathon-Agent%2BToken%20Track-blue)](https://nad.fun/)
+[![EIP-8004](https://img.shields.io/badge/Standard-EIP--8004-green)](https://github.com/ethereum/EIPs/pull/8004)
 
-## 🚀 Live Arena
+**Arena AI Champion** is a fully autonomous AI gaming agent built for the Monad ecosystem. It allows players to engage in high-stakes, 1v1 strategic matches against an AI that adapts to their gameplay in real-time. Powered by a 1st-order Markov Chain model, the agent learns your patterns to gain a competitive edge while operating entirely on-chain.
 
-Access the arena at: `http://localhost:5173`
+---
 
-## 🎮 Game Modes
+## 🚀 Experience the Arena
 
-The Arena features 4 high-speed games:
+- **🎮 Play Now (Local):** `cd frontend && npm run dev`
+- **🤖 On-Chain Agent:** `0xa91D5A0a64ED5eeF11c4359C4631279695A338ef`
+- **💎 $ARENA Token:** [Trade on nad.fun](https://nad.fun/token/0x1D3a53f0F52053D301374647e70B87279D5F7777)
+- **🔍 Explorer:** [View Platform on Monad Vision](https://monadvision.com/address/0x7820903fC53197Ce02bDf9785AC04dd8e891BBb7)
 
-1.  **Rock-Paper-Scissors**: Classic strategy with pattern recognition. **Player Wins Ties!**
-2.  **Dice Roll**: High-stakes randomness. **Player Wins Ties!**
-3.  **Strategy Battle**: Tactical selection from 0-9. **Player Wins Ties!**
-4.  **Coin Flip**: Pure prediction. **Player Wins Ties!**
+---
 
-## 🧠 AI Agent (Markov Chain)
+## 🎲 Game Modes
 
-The Arena uses a 1-st order Markov Chain to analyze player behavior:
-- **Pattern Matching**: The agent tracks your move history to predict your next move.
-- **Dynamic Response**: The more you play, the smarter it gets.
-- **Tie-Breaker**: All games are weighted in favor of the player—on any tie, the player wins!
+Challenge the AI in four balanced gaming categories:
+
+1.  **✊ Rock-Paper-Scissors**: Advanced pattern recognition battle.
+2.  **🎲 Dice Roll**: High-stakes numerical prediction.
+3.  **⚔️ Strategy Battle**: Tactical selection from 0-9.
+4.  **🪙 Coin Flip**: Pure prediction vs internal probability models.
+
+*Note: The Arena handles tie-breakers with a "Player Wins Ties" fairness rule.*
+
+---
+
+## 🧠 Autonomous AI Technology
+
+### Adaptive Strategy (Markov Chain)
+The agent utilizes a **1st-order Markov Chain** to model opponent behavior. By tracking the transitions between your previous moves, the AI calculates the probability of your future actions and adapts its strategy accordingly.
+
+### EIP-8004 On-Chain Identity
+The agent is fully compliant with **EIP-8004**, providing verifiable metadata and model details directly via the **Agent Registry** contract.
+
+### 24/7 Monitoring
+The agent operates a continuous autonomous loop, monitoring the Monad blockchain for proposals and move events to ensure seamless match resolution without human intervention.
+
+---
+
+## 🏢 Technical Architecture
+
+- **Smart Contracts**: Solidity (Foundry)
+  - `ArenaPlatform.sol`: Escrow, wagering logic, and match arbitration.
+  - `AgentRegistry.sol`: On-chain identity and metadata (EIP-8004).
+- **AI Agent**: Node.js + Viem
+  - Real-time event indexing.
+  - Markov transition modeling.
+  - Automated transactional responses.
+- **Frontend**: React + Vite + Tailwind CSS
+  - AppKit/Reown integration for a seamless wallet experience.
+  - Real-time match history and event tracking.
+
+---
 
 ## 📦 Getting Started
 
-1. **Install Dependencies**:
-   ```bash
-   cd TournamentChain && npm install
-   cd frontend && npm install
-   ```
+### 1. Requirements
+- Node.js (v18+)
+- Metamask (configured for Monad Testnet)
 
-2. **Configure Environment**:
-   Ensure your `.env` in `TournamentChain/` has your `PRIVATE_KEY` for the agent.
-
-3. **Start the Agent**:
-   ```bash
-   npm run agent
-   ```
-
-4. **Launch the Frontend**:
-   ```bash
-   cd frontend && npm run dev
-   ```
-
-Our **Arena Champion AI** is a sophisticated autonomous player that:
-- **Learns Patterns**: Uses a 1st-order Markov Chain model to track your previous moves and predict your next one.
-- **Transparent Logic**: Detailed battle logs in terminal show exactly what the AI played and why.
-- **Player Advantage**: Features a 100% "Player Wins Ties" rule to ensure a fair and fun gaming experience.
-- **Autonomous Resolution**: Monitors the blockchain 24/7 to accept challenges and resolve matches instantly.
-
-## Key Features
-
-- **EIP-8004 Compliant**: The agent is registered on-chain with verifiable metadata.
-- **Dual-Token Economy**: $ARENA token integration powered by Monad.
-- **On-Chain Reputation**: Your wins are recorded forever.
-- **Anti-Cheat**: All moves and logic are processed via smart contracts and verified agent logic.
-
-## Technical Excellence
-
-Built with React and Phaser. Powered by Solidity. Secured by OpenZeppelin. Fast, responsive, and fully decentralized on Monad.
-
-## Getting Started
-
-### 1. Frontend
+### 2. Startup
 ```bash
-cd frontend
+# Clone the repository
+git clone https://github.com/HACK3R-CRYPTO/GameArena.git
+cd GameArena
+
+# Install dependencies
 npm install
-npm run dev
-# Visit http://localhost:5173
+cd frontend && npm install
+cd ../agent && npm install
+
+# Start the services
+npm run dev # Launches frontend
+npm start # Launches AI Agent (requires .env cleanup)
 ```
 
-### 2. AI Agent
-```bash
-cd agent
-npm install
-# Configure .env with your PRIVATE_KEY
-npm start
-```
+---
 
-## Deployed Contracts (Monad Testnet)
+## 📜 Deployed Contracts (Monad Testnet)
 
-- **ArenaPlatform (v6)**: `0x9C077926Eea6D5945fC8Ebc29F0f3ab33d976867`
-- **Arena AI Agent**: `0xa91D5A0a64ED5eeF11c4359C4631279695A338ef`
-- **TournamentPlatform**: `0x3190d0bb2f983E407F62DeA4e557bCE73ec7E825`
-- **GameAssets**: `0x0fC01Df600f960d94A2196913bD3a0F2577eF168`
-- **GoldToken**: `0x843182a7a7a4c43cb7fd0d6566088575ef041ffb`
-- **DiamondToken**: `0x24642ffabf43d4bd33e1e883a23e10ddfde186c6`
-- **ArcadePlatform**: `0xDc8d900E64c5891b0A5D7dF0aFF4e581ee448aFE`
-- **WinnerBadge**: `0xcE11B94ccE5DdDaE8556C83F6b1b7c241862a165`
-- **GameLottery**: `0x631d234ea1b750540D546b435903a6cde777Ee82`
+| Contract | Address |
+| :--- | :--- |
+| **Arena AI Platform** | `0x7820903fC53197Ce02bDf9785AC04dd8e891BBb7` |
+| **Arena AI Agent** | `0xa91D5A0a64ED5eeF11c4359C4631279695A338ef` |
+| **$ARENA Token** | `0x1D3a53f0F52053D301374647e70B87279D5F7777` |
+| **Agent Registry** | `0x95884fe0d2a817326338735Eb4f24dD04Cf20Ea7` |
 
-## Documentation
+---
 
-[Gaming Arena Task](GAMING_ARENA_AGENT_TASK.md): Deep dive into the AI Agent strategy and implementation.
+## 🤝 Community & Contact
 
-[Frontend README](frontend/README.md): Frontend setup and feature documentation.
+- **Twitter/X**: [@HACK3R_CRYPTO](https://x.com/HACK3R_CRYPTO)
+- **GitHub**: [HACK3R-CRYPTO](https://github.com/HACK3R-CRYPTO)
 
-## Future Roadmap
+---
 
-- **Advanced AI**: Moving to Deep Reinforcement Learning (DRL) for more complex game states.
-- **More Mini-Games**: Flappy Bird, Tower Defense, and Puzzle games integration.
-- **Advanced Anti-Cheat**: Implementing Zero-Knowledge Proofs (ZKPs) for score verification.
+**Built with ❤️ for the Moltiverse Hackathon by Solo Developer.**
 

@@ -19,7 +19,7 @@
 - **🔥 Trade $ARENA:** [nad.fun/token/0x1D3a53f0F52053D301374647e70B87279D5F7777](https://nad.fun/token/0x1D3a53f0F52053D301374647e70B87279D5F7777)
 - **🎮 Play vs AI:** [Launch Frontend](#) _(Run: `cd frontend && npm run dev`)_
 - **🔍 Explorer:** [Monad Vision](https://monadvision.com/address/0x7820903fC53197Ce02bDf9785AC04dd8e891BBb7)
-- **📊 GitHub:** [Add your repo link]
+- **📊 GitHub:** [TournamentChain Repo](https://github.com/HACK3R-CRYPTO/GameArena)
 
 ---
 
@@ -280,10 +280,9 @@ npm run dev
 
 ## 👤 Contact & Social
 
-- **Twitter:** [@YourHandle] _(Add your X/Twitter)_
-- **GitHub:** [Your GitHub Profile]
-- **Discord:** YourDiscordHandle#1234
-- **Email:** your.email@example.com
+- **Twitter/X:** [@HACK3R_CRYPTO]
+- **GitHub:** [HACK3R-CRYPTO](https://github.com/HACK3R-CRYPTO)
+- **Discord:** Available upon request
 
 ---
 
