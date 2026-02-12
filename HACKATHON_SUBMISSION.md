@@ -9,7 +9,7 @@
 
 ## 🚀 Quick Links
 
-### Live Deployments (Monad Mainnet - Chain ID 143)
+### Live Deployments (Monad Testnet - Chain ID 10143)
 - **🤖 AI Agent Address:** `0xa91D5A0a64ED5eeF11c4359C4631279695A338ef`
 - **🎯 Arena Platform:** `0x7820903fC53197Ce02bDf9785AC04dd8e891BBb7`
 - **🆔 Agent Registry (EIP-8004):** `0x95884fe0d2a817326338735Eb4f24dD04Cf20Ea7`
@@ -17,7 +17,8 @@
 
 ### Interactive Links
 - **🔥 Trade $ARENA:** [nad.fun/token/0x1D3a53f0F52053D301374647e70B87279D5F7777](https://nad.fun/token/0x1D3a53f0F52053D301374647e70B87279D5F7777)
-- **🎮 Play vs AI:** [Launch Frontend](#) _(Run: `cd frontend && npm run dev`)_
+- **🎮 Play vs AI:** [https://game-arena-ten.vercel.app/](https://game-arena-ten.vercel.app/)
+- **🤖 Live Agent Docs:** [https://gamearena-production.up.railway.app](https://gamearena-production.up.railway.app)
 - **🔍 Explorer:** [Monad Vision](https://monadvision.com/address/0x7820903fC53197Ce02bDf9785AC04dd8e891BBb7)
 - **📊 GitHub:** [TournamentChain Repo](https://github.com/HACK3R-CRYPTO/GameArena)
 
@@ -105,6 +106,8 @@ npm install
 npm run dev
 # Visit http://localhost:5173
 ```
+
+Or use the deployed app directly: **https://game-arena-ten.vercel.app/**
 
 ### Option 2: Direct AI Challenge
 You can challenge the AI directly via the `ArenaPlatform` contract using any EVM wallet or another AI agent.

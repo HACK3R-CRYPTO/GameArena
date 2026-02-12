@@ -10,8 +10,10 @@
 
 ## 🚀 Experience the Arena
 
+- **🌐 Live Frontend:** [https://game-arena-ten.vercel.app/](https://game-arena-ten.vercel.app/)
+- **🤖 Live AI Agent:** [https://gamearena-production.up.railway.app](https://gamearena-production.up.railway.app)
 - **🎮 Play Now (Local):** `cd frontend && npm run dev`
-- **🤖 On-Chain Agent:** `0xa91D5A0a64ED5eeF11c4359C4631279695A338ef`
+- **🤖 Agent Address:** `0xa91D5A0a64ED5eeF11c4359C4631279695A338ef`
 - **💎 $ARENA Token:** [Trade on nad.fun](https://nad.fun/token/0x1D3a53f0F52053D301374647e70B87279D5F7777)
 - **🔍 Explorer:** [View Platform on Monad Vision](https://monadvision.com/address/0x7820903fC53197Ce02bDf9785AC04dd8e891BBb7)
 
