@@ -3,6 +3,7 @@ import { privateKeyToAccount } from 'viem/accounts';
 import * as dotenv from 'dotenv';
 import chalk from 'chalk';
 
+dotenv.config();
 dotenv.config({ path: '../contracts/.env' });
 
 const ARENA_ABI = parseAbi([
@@ -26,32 +27,25 @@ const REGISTRY_ADDRESS = '0x95884fe0d2a817326338735Eb4f24dD04Cf20Ea7';
 const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`;
 const account = privateKeyToAccount(PRIVATE_KEY);
 
+const MONAD_TESTNET = {
+    id: 10143,
+    name: 'Monad Testnet',
+    network: 'monad-testnet',
+    nativeCurrency: { name: 'MON', symbol: 'MON', decimals: 18 },
+    rpcUrls: {
+        default: { http: ['https://testnet-rpc.monad.xyz'] },
+        public: { http: ['https://testnet-rpc.monad.xyz'] },
+    }
+};
+
 const publicClient = createPublicClient({
-    chain: {
-        id: 143,
-        name: 'Monad Mainnet',
-        network: 'monad',
-        nativeCurrency: { name: 'MON', symbol: 'MON', decimals: 18 },
-        rpcUrls: {
-            default: { http: ['https://rpc.monad.xyz'] },
-            public: { http: ['https://rpc.monad.xyz'] },
-        }
-    },
+    chain: MONAD_TESTNET,
     transport: http()
 });
 
 const walletClient = createWalletClient({
     account,
-    chain: {
-        id: 143,
-        name: 'Monad Mainnet',
-        network: 'monad',
-        nativeCurrency: { name: 'MON', symbol: 'MON', decimals: 18 },
-        rpcUrls: {
-            default: { http: ['https://rpc.monad.xyz'] },
-            public: { http: ['https://rpc.monad.xyz'] },
-        }
-    },
+    chain: MONAD_TESTNET,
     transport: http()
 });
 

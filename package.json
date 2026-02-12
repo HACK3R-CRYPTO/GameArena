@@ -1,0 +1,16 @@
+{
+  "name": "arena-ai-champion",
+  "version": "1.0.0",
+  "description": "Arena AI Champion - Monad AI Agent Platform",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "start": "cd agent && npm install && npm start",
+    "build": "cd agent && npm install",
+    "agent": "cd agent && npm start",
+    "frontend": "cd frontend && npm install && npm run dev"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
