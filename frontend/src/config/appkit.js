@@ -7,11 +7,17 @@ const monadMainnet = {
   network: 'monad',
   nativeCurrency: { name: 'MON', symbol: 'MON', decimals: 18 },
   rpcUrls: {
-    default: { http: ['https://rpc.monad.xyz'] },
-    public: { http: ['https://rpc.monad.xyz'] },
+    default: { http: ['https://rpc.monad.xyz', 'https://monad-mainnet.drpc.org', 'https://infra.originstake.com/monad/evm', 'https://rpc3.monad.xyz'] },
+    public: { http: ['https://rpc.monad.xyz', 'https://monad-mainnet.drpc.org', 'https://infra.originstake.com/monad/evm', 'https://rpc3.monad.xyz'] },
   },
   blockExplorers: {
     default: { name: 'Monad Vision', url: 'https://monadvision.com' },
+  },
+  contracts: {
+    multicall3: {
+      address: '0xcA11bde05977b3631167028862bE2a173976CA11',
+      blockCreated: 0,
+    },
   },
   testnet: false,
 }
@@ -27,6 +33,12 @@ const monadTestnet = {
   },
   blockExplorers: {
     default: { name: 'MonadExplorer', url: 'https://testnet.monadexplorer.com' },
+  },
+  contracts: {
+    multicall3: {
+      address: '0xcA11bde05977b3631167028862bE2a173976CA11',
+      blockCreated: 0,
+    },
   },
   testnet: true,
 }

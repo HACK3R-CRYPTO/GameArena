@@ -63,24 +63,32 @@ function Navigation() {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 px-1 py-1.5 sm:px-2 md:px-4 sm:py-2 md:py-4">
-      <div className="w-full max-w-sm px-2 py-1.5 mx-auto border shadow-lg bg-black/40 backdrop-blur-md border-white/10 rounded-lg sm:max-w-md md:max-w-4xl lg:max-w-6xl xl:max-w-7xl sm:px-3 md:px-6 sm:py-2 md:py-3 sm:rounded-xl md:rounded-2xl">
-        <div className="flex items-center justify-between gap-1.5 sm:gap-2 md:gap-4 lg:gap-8">
-          {/* Logo */}
-          <Link to="/" className="flex items-center flex-shrink-0 min-w-0 gap-1 text-sm font-bold no-underline transition-transform sm:gap-2 sm:text-lg md:text-xl hover:scale-105">
-            <span className="text-lg sm:text-2xl md:text-3xl">⚔️</span>
-            <span className="hidden text-xs truncate text-gradient xs:inline sm:inline sm:text-sm md:text-base">ArenaAgent</span>
+    <nav className="fixed top-0 left-0 right-0 z-50 px-4 py-4">
+      <div className="max-w-7xl mx-auto glass-panel rounded-2xl px-6 py-3 border border-white/5 shadow-[0_0_15px_rgba(0,123,255,0.1)]">
+        <div className="flex items-center justify-between">
+
+          {/* Logo Area */}
+          <Link to="/" className="flex items-center gap-3 group no-underline">
+            <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-gradient-to-br from-cyan-500/20 to-purple-600/20 border border-cyan-500/30 group-hover:shadow-[0_0_15px_rgba(0,212,255,0.4)] transition-all duration-300">
+              <span className="text-2xl animate-pulse-glow">⚔️</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="font-cyber text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400 group-hover:to-cyan-300 transition-all">
+                ARENA AGENT
+              </span>
+              <span className="text-[10px] text-cyan-500/60 font-mono tracking-widest uppercase">EIP-8004 Powered</span>
+            </div>
           </Link>
 
-          {/* Desktop Navigation - Improved responsive breakpoints */}
-          <div className="items-center justify-center flex-1 hidden gap-1 lg:flex xl:gap-2 max-w-[60%] xl:max-w-[70%]">
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
-                className={`px-2 xl:px-4 py-1.5 xl:py-2 rounded-lg font-medium transition-all no-underline text-sm xl:text-base whitespace-nowrap ${isActivePath(link.path)
-                  ? 'text-white bg-white/10 border border-white/20'
-                  : 'text-white/60 hover:text-white hover:bg-white/5'
+                className={`relative px-4 py-2 rounded-lg font-cyber text-sm tracking-wide transition-all duration-300 ${isActivePath(link.path)
+                  ? 'text-cyan-400 bg-cyan-500/10 shadow-[0_0_10px_rgba(0,212,255,0.2)] border border-cyan-500/20'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
               >
                 {link.label}
@@ -88,61 +96,42 @@ function Navigation() {
             ))}
           </div>
 
-          {/* Tablet Navigation - Hidden on mobile, shown on medium screens */}
-          <div className="items-center justify-center flex-1 hidden md:flex lg:hidden">
-            {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                className={`px-2 py-1.5 rounded-lg font-medium transition-all no-underline text-xs whitespace-nowrap ${isActivePath(link.path)
-                  ? 'text-white bg-white/10 border border-white/20'
-                  : 'text-white/60 hover:text-white hover:bg-white/5'
-                  }`}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </div>
-
-          {/* Authentication Section - Responsive */}
-          <div className="items-center flex-shrink-0 hidden gap-2 md:gap-3 md:flex">
+          {/* Auth Section */}
+          <div className="hidden md:flex items-center gap-4">
             {isConnected ? (
-              <div className="flex items-center gap-2 md:gap-3">
-                <div className="flex items-center gap-2 px-2 py-1.5 md:px-3 md:py-2 border rounded-lg glass border-white/10">
-                  <span className="font-mono text-xs font-medium truncate text-cyan-400 max-w-24 lg:max-w-32">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black/40 border border-white/10">
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                  <span className="font-mono text-xs text-cyan-300 truncate max-w-[120px]">
                     {displayName || formatAddress(address)}
                   </span>
-                  <button
-                    className="bg-red-500/20 border border-red-500/30 text-red-400 px-2 py-1 md:px-3 md:py-1.5 rounded-md text-xs font-medium hover:bg-red-500/30 transition-all"
-                    onClick={() => disconnect()}
-                  >
-                    <span className="hidden sm:inline">Logout</span>
-                    <span className="inline sm:hidden">×</span>
-                  </button>
                 </div>
+                <button
+                  className="p-2 text-red-400/70 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                  onClick={() => disconnect()}
+                  title="Disconnect"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                </button>
               </div>
             ) : (
               <button
-                className="px-3 py-1.5 md:px-4 lg:px-5 md:py-2 font-medium text-white transition-all rounded-lg bg-gradient-to-r from-purple-600 to-purple-800 hover:shadow-lg hover:shadow-purple-600/40 text-xs md:text-sm"
+                className="btn-cyber px-6 py-2 rounded-lg text-sm font-bold shadow-[0_0_20px_rgba(0,212,255,0.15)] hover:shadow-[0_0_30px_rgba(0,212,255,0.3)]"
                 onClick={() => open()}
               >
-                <span className="hidden sm:inline">Sign In</span>
-                <span className="inline sm:hidden">Login</span>
+                Connect Wallet
               </button>
             )}
           </div>
 
-          {/* Mobile Menu Button - Improved */}
+          {/* Mobile Menu Button */}
           <button
-            className="flex-shrink-0 p-1.5 text-white lg:hidden"
+            className="md:hidden p-2 text-cyan-400 hover:bg-cyan-500/10 rounded-lg transition-colors"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
           >
-            <svg 
-              className={`w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-200 ${mobileMenuOpen ? 'rotate-90' : ''}`} 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
+            <svg
+              className={`w-6 h-6 transition-transform duration-300 ${mobileMenuOpen ? 'rotate-90' : ''}`}
+              fill="none" stroke="currentColor" viewBox="0 0 24 24"
             >
               {mobileMenuOpen ? (
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -154,23 +143,22 @@ function Navigation() {
         </div>
       </div>
 
-      {/* Mobile Menu - Enhanced with animations and better responsive design */}
-      <div 
-        className={`overflow-hidden transition-all duration-300 ease-in-out ${
-          mobileMenuOpen 
-            ? 'max-h-[500px] opacity-100' 
-            : 'max-h-0 opacity-0'
-        } md:block lg:hidden`}
+      {/* Mobile Menu Dropdown */}
+      <div
+        className={`md:hidden absolute left-4 right-4 top-[80px] transition-all duration-300 ease-out origin-top ${mobileMenuOpen
+            ? 'transform scale-y-100 opacity-100 visible'
+            : 'transform scale-y-95 opacity-0 invisible'
+          }`}
       >
-        <div className="w-full max-w-sm p-3 mx-auto mt-2 border shadow-lg bg-black/40 backdrop-blur-md border-white/10 rounded-xl sm:max-w-md md:max-w-4xl sm:p-4 md:rounded-2xl">
-          <div className="flex flex-col gap-1 mb-3 sm:gap-2 sm:mb-4">
+        <div className="glass-panel p-4 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] border border-cyan-500/20">
+          <div className="flex flex-col gap-2">
             {navLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
-                className={`px-3 py-2 sm:px-4 sm:py-3 rounded-lg font-medium transition-all no-underline text-xs sm:text-sm md:text-base ${isActivePath(link.path)
-                  ? 'text-white bg-purple-600/20 border border-purple-600/30'
-                  : 'text-white/70 hover:text-white hover:bg-white/5'
+                className={`px-4 py-3 rounded-lg font-cyber text-sm ${isActivePath(link.path)
+                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+                  : 'text-gray-400 hover:bg-white/5 hover:text-white'
                   }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -179,37 +167,26 @@ function Navigation() {
             ))}
           </div>
 
-          {/* Mobile Authentication Section */}
-          <div className="pt-2 border-t sm:pt-3 border-white/10">
+          <div className="mt-4 pt-4 border-t border-white/10">
             {isConnected ? (
-              <div className="flex flex-col gap-2 p-3 border rounded-lg sm:gap-3 sm:p-4 bg-white/5 border-white/10">
-                <div className="flex items-center justify-between">
-                  <span className="flex-1 mr-2 font-mono text-[10px] font-medium truncate sm:text-xs text-cyan-400">
-                    {displayName || formatAddress(address)}
-                  </span>
-                  <span className="px-2 py-1 text-[10px] text-green-400 border rounded-full bg-green-500/20 border-green-500/30">
-                    Connected
-                  </span>
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center justify-between px-3 py-2 bg-black/40 rounded-lg border border-white/5">
+                  <span className="font-mono text-sm text-cyan-300">{displayName || formatAddress(address)}</span>
+                  <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(0,255,136,0.6)]"></div>
                 </div>
                 <button
-                  className="w-full px-3 py-2 text-[11px] font-medium text-red-400 transition-all border rounded-md sm:px-4 sm:py-2 sm:text-sm bg-red-500/20 border-red-500/30 hover:bg-red-500/30"
-                  onClick={() => {
-                    disconnect();
-                    setMobileMenuOpen(false);
-                  }}
+                  className="w-full py-2.5 rounded-lg border border-red-500/30 text-red-400 font-cyber text-xs uppercase tracking-wider hover:bg-red-500/10 transition-colors"
+                  onClick={() => { disconnect(); setMobileMenuOpen(false); }}
                 >
-                  Disconnect Wallet
+                  Disconnect System
                 </button>
               </div>
             ) : (
               <button
-                className="w-full px-4 py-3 text-xs font-medium text-white transition-all rounded-lg sm:px-6 sm:py-3 bg-gradient-to-r from-purple-600 to-purple-800 hover:shadow-lg hover:shadow-purple-600/40 sm:text-sm md:text-base"
-                onClick={() => {
-                  open();
-                  setMobileMenuOpen(false);
-                }}
+                className="w-full btn-cyber py-3 rounded-lg font-bold"
+                onClick={() => { open(); setMobileMenuOpen(false); }}
               >
-                Connect Wallet
+                Connect Interface
               </button>
             )}
           </div>

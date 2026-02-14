@@ -14,7 +14,9 @@ const ARENA_ABI = parseAbi([
     "function playMove(uint256 _matchId, uint8 _move) external",
     "function resolveMatch(uint256 _matchId, address _winner) external",
     "function matchCounter() view returns (uint256)",
-    "function matches(uint256) view returns (uint256 id, address challenger, address opponent, uint256 wager, uint8 gameType, uint8 status, address winner, uint256 createdAt)"
+    "function matches(uint256) view returns (uint256 id, address challenger, address opponent, uint256 wager, uint8 gameType, uint8 status, address winner, uint256 createdAt)",
+    "function hasPlayed(uint256 _matchId, address _player) view returns (bool)",
+    "function playerMoves(uint256 _matchId, address _player) view returns (uint8)"
 ]);
 
 const REGISTRY_ABI = parseAbi([
@@ -22,7 +24,7 @@ const REGISTRY_ABI = parseAbi([
     "function agents(address) view returns (string name, string model, string description, string metadataUri, address owner, uint256 registeredAt, bool active)"
 ]);
 
-const ARENA_ADDRESS = (process.env.VITE_ARENA_PLATFORM_ADDRESS || '0x7820903fC53197Ce02bDf9785AC04dd8e891BBb7') as `0x${string}`;
+const ARENA_ADDRESS = (process.env.VITE_ARENA_PLATFORM_ADDRESS || '0x30af30ec392b881b009a0c6b520ebe6d15722e9b') as `0x${string}`;
 const REGISTRY_ADDRESS = '0x95884fe0d2a817326338735Eb4f24dD04Cf20Ea7';
 
 if (!process.env.PRIVATE_KEY) {
@@ -34,49 +36,73 @@ if (!process.env.PRIVATE_KEY) {
 const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`;
 const account = privateKeyToAccount(PRIVATE_KEY);
 
-const MONAD_TESTNET = {
-    id: 10143,
-    name: 'Monad Testnet',
-    network: 'monad-testnet',
+import { type Chain } from 'viem';
+
+const MONAD_MAINNET = {
+    id: 143,
+    name: 'Monad Mainnet',
+    network: 'monad-mainnet',
     nativeCurrency: { name: 'MON', symbol: 'MON', decimals: 18 },
     rpcUrls: {
-        default: { http: [process.env.VITE_RPC_URL || 'https://testnet-rpc.monad.xyz'] },
-        public: { http: [process.env.VITE_RPC_URL || 'https://testnet-rpc.monad.xyz'] },
-    }
-};
+        default: { http: [process.env.VITE_RPC_URL || 'https://rpc.monad.xyz'] },
+        public: { http: [process.env.VITE_RPC_URL || 'https://rpc.monad.xyz'] },
+    },
+    contracts: {
+        multicall3: {
+            address: '0xcA11bde05977b3631167028862bE2a173976CA11' as `0x${string}`,
+            blockCreated: 0,
+        },
+    },
+} as const;
 
 const publicClient = createPublicClient({
-    chain: MONAD_TESTNET,
+    chain: MONAD_MAINNET,
     transport: http()
 });
 
 const walletClient = createWalletClient({
     account,
-    chain: MONAD_TESTNET,
+    chain: MONAD_MAINNET,
     transport: http()
 });
 
-const GAME_NAMES = ['RockPaperScissors', 'DiceRoll', 'StrategyBattle', 'CoinFlip', 'TicTacToe'];
+const GAME_NAMES = ['RockPaperScissors', 'DiceRoll', 'UNUSED', 'CoinFlip', 'UNUSED_TicTacToe'];
 
 // AI Logic: Markov Chain for Opponent Modeling
 class OpponentModel {
     // transitions[gameType][playerAddress][prevMove][nextMove] = count
     transitions: Record<number, Record<string, number[][]>> = {};
     history: Record<number, Record<string, number>> = {};
+    matchCount: number = 0;
+    wins: Record<string, number> = {};
 
     update(gameType: number, player: string, move: number) {
         if (!this.transitions[gameType]) this.transitions[gameType] = {};
         if (!this.history[gameType]) this.history[gameType] = {};
-        
-        // Game type move counts: RPS=3, Dice=6, Strategy=10, Coin=2, TTT=9
-        const size = gameType === 0 ? 3 : gameType === 1 ? 6 : gameType === 2 ? 10 : gameType === 3 ? 2 : 9;
+
+        // Game type move counts: RPS=3, Dice=6, Coin=2
+        const size = gameType === 0 ? 3 : gameType === 1 ? 6 : 2;
+
+        // Initialize player's transition table if it doesn't exist
         if (!this.transitions[gameType][player]) {
-            this.transitions[gameType][player] = Array(size).fill(0).map(() => Array(size).fill(0));
+            this.transitions[gameType][player] = Array.from({ length: size }, () => Array(size).fill(0));
         }
-        
+
         const lastMove = this.history[gameType][player];
         if (lastMove !== undefined && lastMove < size && move < size) {
-            this.transitions[gameType][player][lastMove][move]++;
+            // Ensure nested objects exist check is handled by initialization above
+            // Safe access knowing initialization is done
+            const p = this.transitions[gameType]![player];
+            if (p) {
+                const row = p[lastMove];
+                if (row) {
+                    row[move] = (row[move] || 0) + 1;
+                }
+            }
+
+            // Update stats
+            this.matchCount++;
+            if (!this.wins[player]) this.wins[player] = 0;
         }
         this.history[gameType][player] = move;
     }
@@ -84,21 +110,21 @@ class OpponentModel {
     predict(gameType: number, player: string): number {
         const playerTrans = this.transitions[gameType]?.[player];
         const lastMove = this.history[gameType]?.[player];
-        // Game type move counts: RPS=3, Dice=6, Strategy=10, Coin=2
-        const size = gameType === 0 ? 3 : gameType === 1 ? 6 : gameType === 2 ? 10 : 2;
+        // Game type move counts: RPS=3, Dice=6, Coin=2
+        const size = gameType === 0 ? 3 : gameType === 1 ? 6 : 2;
 
-        if (!playerTrans || lastMove === undefined || !playerTrans[lastMove] || !Array.isArray(playerTrans[lastMove])) {
+        if (!playerTrans || lastMove === undefined || !playerTrans[lastMove]) {
             return Math.floor(Math.random() * size);
         }
 
-        const counts = playerTrans[lastMove];
+        const counts = playerTrans[lastMove]!;
         const total = counts.reduce((a, b) => a + b, 0);
-        
+
         if (total === 0) return Math.floor(Math.random() * size);
 
         let predictedMove = 0;
         for (let i = 1; i < size; i++) {
-            if (counts[i] > counts[predictedMove]) predictedMove = i;
+            if (counts[i]! > counts[predictedMove]!) predictedMove = i;
         }
 
         if (gameType === 0) { // RPS - counter the predicted move
@@ -106,14 +132,11 @@ class OpponentModel {
         } else if (gameType === 1) { // Dice Roll (1-6) - pick high value with some randomness
             // Return 0-5 (will be converted to 1-6 when used)
             return Math.random() > 0.3 ? 5 : Math.floor(Math.random() * 6); // Favor 6
-        } else if (gameType === 2) { // Strategy Battle - pick high numbers
-            return Math.random() > 0.4 ? Math.floor(Math.random() * 3) + 7 : predictedMove; // Favor 7-9
         } else if (gameType === 3) { // CoinFlip - exploit patterns or random
             return Math.random() > 0.5 ? predictedMove : 1 - predictedMove;
-        } else { // TicTacToe - strategic positions
-            // Favor center (4) and corners (0,2,6,8)
-            const strategic = [4, 0, 2, 6, 8];
-            return Math.random() > 0.3 ? strategic[Math.floor(Math.random() * strategic.length)] : predictedMove;
+        } else {
+            // Default random fallback for unknown types
+            return Math.floor(Math.random() * size);
         }
     }
 }
@@ -121,6 +144,9 @@ class OpponentModel {
 const model = new OpponentModel();
 const respondedMatches = new Set<string>();
 const processingAcceptance = new Set<string>();
+
+const activeGameLocks = new Set<string>();
+const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
 async function scanForMatches() {
     try {
@@ -130,33 +156,67 @@ async function scanForMatches() {
             functionName: 'matchCounter',
         }) as bigint;
 
-        for (let i = 0n; i < matchCounter; i++) {
-            if (processingAcceptance.has(i.toString())) continue;
+        console.log(chalk.gray(`Scanning match history... Total matches: ${matchCounter}`));
 
-            const m = await publicClient.readContract({
+        if (matchCounter === 0n) return;
+
+        // BATCH FETCH: Use Multicall to get all matches in ONE request
+        const matchContracts = [];
+        for (let i = 0n; i < matchCounter; i++) {
+            matchContracts.push({
                 address: ARENA_ADDRESS,
                 abi: ARENA_ABI,
                 functionName: 'matches',
                 args: [i]
-            }) as any;
+            });
+        }
+
+        const results = await publicClient.multicall({ contracts: matchContracts });
+
+        for (let i = 0; i < results.length; i++) {
+            const res = results[i];
+            if (!res || res.status !== 'success') continue;
+            const m = res.result as any;
+            const matchId = BigInt(i);
+            const matchIdStr = matchId.toString();
+
+            if (processingAcceptance.has(matchIdStr)) continue;
 
             // 1. Accept pending matches
             if (m[5] === 0 && (m[2].toLowerCase() === account.address.toLowerCase() || m[2] === '0x0000000000000000000000000000000000000000')) {
-                await handleChallenge(i, m[1], m[3], m[4]);
+                await handleChallenge(matchId, m[1], m[3], m[4]);
+            }
+
+            // 2. Process Accepted Matches (Play Move OR Resolve)
+            // Status 1 = Accepted
+            if (m[5] === 1) {
+                // A. Try to play our move (if we are in match)
+                await tryPlayMove(matchId, m); // This will do its own checks
+
+                // B. Try to Resolve (if both played) - GLOBAL REFEREE
+                await tryResolveMatch(matchId, m);
             }
         }
-    } catch (e) { }
+    } catch (e) {
+        console.error(chalk.red("Error scanning for matches:", e));
+    }
 }
 
 async function startAgent() {
+    try {
+        const blockNumber = await publicClient.getBlockNumber();
+        console.log(chalk.blue(`Connected to network. Current block: ${blockNumber}`));
+    } catch (err) {
+        console.error(chalk.red("Failed to connect to network:", err));
+    }
     console.log(chalk.blue.bold('🤖 Arena AI Agent V3 (EIP-8004) Started'));
-    
+
     // EIP-8004 Registration
     try {
         const profile = await publicClient.readContract({
             address: REGISTRY_ADDRESS, abi: REGISTRY_ABI, functionName: 'agents', args: [account.address]
         }) as any;
-        
+
         if (!profile[4] || profile[1] === '') { // owner check or model empty
             console.log(chalk.yellow('📝 Registering AI Agent Profile (EIP-8004)...'));
             const { request } = await publicClient.simulateContract({
@@ -164,7 +224,7 @@ async function startAgent() {
                 args: [
                     "Arena Champion AI",
                     "Markov-1 (Adaptive Pattern Learning)",
-                    "Autonomous Gaming Agent mastering 4 game types: Rock-Paper-Scissors, Dice Roll, Strategy Battle, and Coin Flip with real-time opponent modeling.",
+                    "Autonomous Gaming Agent mastering 3 game types: Rock-Paper-Scissors, Dice Roll, and Coin Flip with real-time opponent modeling.",
                     "https://moltiverse.dev"
                 ],
                 account
@@ -180,7 +240,7 @@ async function startAgent() {
 
     console.log(chalk.gray(`Wallet: ${account.address} | Platform: ${ARENA_ADDRESS}`));
 
-    setInterval(scanForMatches, 5000);
+    setInterval(scanForMatches, 20000); // Check every 20s to avoid 429s
     await scanForMatches();
 
     publicClient.watchEvent({
@@ -190,9 +250,11 @@ async function startAgent() {
             for (const log of logs) {
                 const { matchId, challenger, opponent, wager, gameType } = log.args;
                 if (processingAcceptance.has(matchId!.toString())) continue;
-                
+
                 if (opponent?.toLowerCase() === account.address.toLowerCase() || opponent === '0x0000000000000000000000000000000000000000') {
-                    await handleChallenge(matchId!, challenger!, wager!, gameType!);
+                    if (matchId !== undefined && challenger && wager !== undefined && gameType !== undefined) {
+                        await handleChallenge(matchId, challenger, wager, gameType);
+                    }
                 }
             }
         }
@@ -203,28 +265,24 @@ async function startAgent() {
         event: parseAbiItem('event MovePlayed(uint256 indexed matchId, address indexed player, uint8 move)'),
         onLogs: async (logs) => {
             for (const log of logs) {
-                const { matchId, player, move } = log.args;
-                
-                // Block double-responses immediately
-                if (respondedMatches.has(matchId!.toString())) continue;
+                const { matchId, player } = log.args;
+                const matchIdStr = matchId!.toString();
+
+                if (activeGameLocks.has(matchIdStr)) continue;
 
                 const m = await publicClient.readContract({
                     address: ARENA_ADDRESS, abi: ARENA_ABI, functionName: 'matches', args: [matchId!]
                 }) as any;
 
-                // Status 1 = Accepted
                 if (m[5] !== 1) continue;
 
-                const isSelfChallenge = m[1].toLowerCase() === m[2].toLowerCase();
-                const isUserMove = player?.toLowerCase() !== account.address.toLowerCase() || isSelfChallenge;
+                console.log(chalk.blue(`\nMove Detected: Match #${matchId} by ${player}`));
 
-                if (isUserMove) {
-                    console.log(chalk.blue(`\nMove Detected: Match #${matchId} (${GAME_NAMES[m[4]]}) by ${player}`));
-                    respondedMatches.add(matchId!.toString());
-                    
-                    if (player) model.update(m[4], player, move!);
-                    await resolveAgainstPlayer(matchId!, player!, move!, m[4]);
-                }
+                // A. Try to play our move (if we are in match)
+                await tryPlayMove(matchId!, m);
+
+                // B. Try to Resolve (if both played) -> Global Referee
+                await tryResolveMatch(matchId!, m);
             }
         }
     });
@@ -237,8 +295,9 @@ async function handleChallenge(matchId: bigint, challenger: string, wager: bigin
     console.log(chalk.yellow(`\nMatch Proposed: #${matchId} (${GAME_NAMES[gameType]}) from ${challenger}`));
 
     const balance = await publicClient.getBalance({ address: account.address });
-    const maxWager = balance / 10n; 
-    
+    // Allow up to 50% of balance (reserve rest for gas/other matches)
+    const maxWager = balance / 2n;
+
     if (wager > maxWager) {
         console.log(chalk.red(`Challenge rejected: Wager ${formatEther(wager)} MON too high (Max allowed: ${formatEther(maxWager)} MON)`));
         return;
@@ -259,158 +318,131 @@ async function handleChallenge(matchId: bigint, challenger: string, wager: bigin
     }
 }
 
-async function resolveAgainstPlayer(matchId: bigint, player: string, playerMove: number, gameType: number) {
-    console.log(chalk.magenta(`AI responding to player move in match #${matchId}...`));
-    
-    // AI predicts and counters
-    const aiMove = model.predict(gameType, player);
-    
-    let moveLabel = 'Strategic';
-    let playerMoveLabel = 'Strategic';
-    
-    if (gameType === 0) {
-        const rpsLabels = ['Rock', 'Paper', 'Scissors'];
-        moveLabel = rpsLabels[aiMove] || 'Unknown';
-        playerMoveLabel = rpsLabels[playerMove] || 'Unknown';
-    } else if (gameType === 1) {
-        moveLabel = `Dice ${aiMove + 1}`; // aiMove is 0-5, display as 1-6
-        playerMoveLabel = `Dice ${playerMove}`; // playerMove is already 1-6
-    } else if (gameType === 2) {
-        moveLabel = `Strategy ${aiMove}`;
-        playerMoveLabel = `Strategy ${playerMove}`;
-    } else if (gameType === 3) {
-        const coinLabels = ['Heads', 'Tails'];
-        moveLabel = coinLabels[aiMove] || 'Unknown';
-        playerMoveLabel = coinLabels[playerMove] || 'Unknown';
-    } else if (gameType === 4) {
-        moveLabel = `Cell ${aiMove}`;
-        playerMoveLabel = `Cell ${playerMove}`;
-    }
-    
-    console.log(chalk.gray(`AI Move: ${moveLabel} | Player Move: ${playerMoveLabel}`));
+async function tryPlayMove(matchId: bigint, matchData: any) {
+    const matchIdStr = matchId.toString();
+    if (activeGameLocks.has(matchIdStr)) return;
 
-    let winner: string = player;
+    // Only play if Agent is a participant (Challenger or Opponent)
+    const isChallenger = matchData[1].toLowerCase() === account.address.toLowerCase();
+    const isOpponent = matchData[2].toLowerCase() === account.address.toLowerCase();
 
-    if (gameType === 0) { // Rock-Paper-Scissors: Rock=0, Paper=1, Scissors=2
-        if (aiMove === playerMove) {
-            winner = player; // Draw defaults to player
-            console.log(chalk.yellow(`🤝 TIE! Both chose ${moveLabel} → Player wins tie-breaker`));
-        } else if ((aiMove === 0 && playerMove === 2) || // Rock beats Scissors
-                   (aiMove === 1 && playerMove === 0) || // Paper beats Rock
-                   (aiMove === 2 && playerMove === 1)) { // Scissors beats Paper
-            winner = account.address;
-            console.log(chalk.green(`✅ AI WINS! ${moveLabel} beats ${playerMoveLabel}`));
-        } else {
-            winner = player;
-            console.log(chalk.red(`❌ PLAYER WINS! ${playerMoveLabel} beats ${moveLabel}`));
-        }
-    } else if (gameType === 1) { // Dice Roll: Higher roll wins (moves are 1-6)
-        // Note: Frontend sends 1-6, but internally we use 0-5, so add 1 for comparison
-        const aiRoll = aiMove + 1;
-        const playerRoll = playerMove;
-        console.log(chalk.cyan(`🎲 Dice Battle: AI rolled ${aiRoll}, Player rolled ${playerRoll}`));
-        if (aiRoll > playerRoll) {
-            winner = account.address;
-            console.log(chalk.green(`✅ AI WINS! ${aiRoll} > ${playerRoll}`));
-        } else if (aiRoll < playerRoll) {
-            winner = player;
-            console.log(chalk.red(`❌ PLAYER WINS! ${playerRoll} > ${aiRoll}`));
-        } else {
-            winner = player; // Tie goes to player
-            console.log(chalk.yellow(`🤝 TIE! Both rolled ${aiRoll} → Player wins tie-breaker`));
-        }
-    } else if (gameType === 2) { // Strategy Battle: Higher strategy wins (0-9)
-        console.log(chalk.cyan(`⚔️ Strategy Battle: AI=${aiMove}, Player=${playerMove}`));
-        if (aiMove > playerMove) {
-            winner = account.address;
-            console.log(chalk.green(`✅ AI WINS! Strategy ${aiMove} > ${playerMove}`));
-        } else if (aiMove < playerMove) {
-            winner = player;
-            console.log(chalk.red(`❌ PLAYER WINS! Strategy ${playerMove} > ${aiMove}`));
-        } else {
-            winner = player; // Tie goes to player
-            console.log(chalk.yellow(`🤝 TIE! Both chose Strategy ${aiMove} → Player wins tie-breaker`));
-        }
-    } else if (gameType === 3) { // Coin Flip: Match prediction
-        // In coin flip, both players predict the outcome (Heads=0, Tails=1)
-        // Simulate actual coin flip
-        const actualFlip = Math.random() > 0.5 ? 1 : 0;
-        const flipName = actualFlip === 0 ? 'Heads' : 'Tails';
-        const aiCorrect = aiMove === actualFlip;
-        const playerCorrect = playerMove === actualFlip;
-        
-        console.log(chalk.cyan(`🪙 Coin landed on: ${flipName} | AI predicted: ${moveLabel}, Player predicted: ${playerMoveLabel}`));
-        
-        if (aiCorrect && !playerCorrect) {
-            winner = account.address;
-            console.log(chalk.green(`✅ AI WINS! Correctly predicted ${flipName}`));
-        } else if (playerCorrect && !aiCorrect) {
-            winner = player;
-            console.log(chalk.red(`❌ PLAYER WINS! Correctly predicted ${flipName}`));
-        } else {
-            winner = player; // Both correct or both wrong = player wins
-            if (aiCorrect && playerCorrect) {
-                console.log(chalk.yellow(`🤝 TIE! Both predicted correctly → Player wins tie-breaker`));
-            } else {
-                console.log(chalk.yellow(`🤝 TIE! Both predicted wrong → Player wins tie-breaker`));
-            }
-        }
-    } else if (gameType === 4) { // Tic-Tac-Toe: Strategic cell selection (SIMPLIFIED VERSION)
-        // Strategic value: Center=5, Corners=3, Edges=1
-        const cellValues = [3, 1, 3, 1, 5, 1, 3, 1, 3]; // Based on position importance
-        const aiValue = cellValues[aiMove] || 0;
-        const playerValue = cellValues[playerMove] || 0;
-        
-        console.log(chalk.cyan(`TicTacToe Cell Values: AI Cell ${aiMove}=${aiValue}, Player Cell ${playerMove}=${playerValue}`));
-        
-        if (aiValue > playerValue) winner = account.address;
-        else if (aiValue < playerValue) winner = player;
-        else winner = Math.random() > 0.5 ? account.address : player; // Tie breaks randomly
-    }
+    if (!isChallenger && !isOpponent) return;
 
-    // Submit AI Move to chain so it appears in frontend
+    // Check if we already played
+    const hasPlayed = await publicClient.readContract({
+        address: ARENA_ADDRESS, abi: ARENA_ABI, functionName: 'hasPlayed', args: [matchId, account.address]
+    }) as boolean;
+
+    if (hasPlayed) return;
+
+    activeGameLocks.add(matchIdStr);
     try {
+        const gameType = matchData[4];
+        const opponentAddr = isChallenger ? matchData[2] : matchData[1];
+
+        console.log(chalk.magenta(`🤖 Agent playing move for Match #${matchId} (${GAME_NAMES[gameType]})...`));
+
+        // Predict move based on opponent
+        const aiMove = model.predict(gameType, opponentAddr);
         let moveToSend = aiMove;
-        if (gameType === 1) { // Dice requires 1-6, internal model uses 0-5
-            moveToSend = aiMove + 1;
-        }
 
-        console.log(chalk.yellow(`Submitting AI Move (${moveLabel}) to chain...`));
-        const { request: playRequest } = await publicClient.simulateContract({
-            address: ARENA_ADDRESS, 
-            abi: ARENA_ABI, 
-            functionName: 'playMove', 
-            args: [matchId, moveToSend], 
-            account
-        });
-        const playHash = await walletClient.writeContract(playRequest);
-        console.log(chalk.gray(`AI Move TX: ${playHash}`));
-        
-        // Wait for move to be indexed before resolving
-        await publicClient.waitForTransactionReceipt({ hash: playHash });
-    } catch (err: any) {
-        console.log(chalk.red("Failed to submit AI move:"), err.shortMessage || err.message);
-    }
+        // Visual Logging
+        let moveLabel = 'Strategic';
+        if (gameType === 0) moveLabel = ['Rock', 'Paper', 'Scissors'][aiMove] || 'Unknown';
+        else if (gameType === 1) { moveLabel = `Dice ${aiMove + 1}`; moveToSend = aiMove + 1; }
+        else if (gameType === 3) moveLabel = ['Heads', 'Tails'][aiMove] || 'Unknown';
 
-    try {
-        // Double check status before resolution to avoid "higher priority" (nonce) conflicts from failed simulations
-        const m = await publicClient.readContract({
-            address: ARENA_ADDRESS, abi: ARENA_ABI, functionName: 'matches', args: [matchId]
-        }) as any;
-        if (m[5] !== 1) {
-            console.log(chalk.gray(`Match #${matchId} no longer in progress (Status: ${m[5]}).`));
-            return;
-        }
+        console.log(chalk.yellow(`Submitting Move (${moveLabel})...`));
 
         const { request } = await publicClient.simulateContract({
-            address: ARENA_ADDRESS, abi: ARENA_ABI, functionName: 'resolveMatch', args: [matchId, winner], account
+            address: ARENA_ADDRESS, abi: ARENA_ABI, functionName: 'playMove',
+            args: [matchId, moveToSend], account
         });
         const hash = await walletClient.writeContract(request);
-        console.log(chalk.bold.green(`Match #${matchId} Resolved! Winner: ${winner === account.address ? 'AI Agent' : 'Player'}`));
-        console.log(chalk.gray(`TX Hash: ${hash}`));
-    } catch (error: any) {
-        console.error(chalk.red(`Failed to resolve match #${matchId}:`), error.shortMessage || error.message);
+        console.log(chalk.gray(`TX: ${hash}`));
+        await publicClient.waitForTransactionReceipt({ hash });
+
+    } catch (e: any) {
+        console.error(chalk.red(`Failed to play move for #${matchId}:`), e.shortMessage || e.message);
+    } finally {
+        activeGameLocks.delete(matchIdStr);
     }
+}
+
+async function tryResolveMatch(matchId: bigint, matchData: any) {
+    const matchIdStr = matchId.toString();
+    if (activeGameLocks.has(matchIdStr + '_resolve')) return;
+
+    // Check if BOTH have played
+    const [challengerPlayed, opponentPlayed] = await Promise.all([
+        publicClient.readContract({ address: ARENA_ADDRESS, abi: ARENA_ABI, functionName: 'hasPlayed', args: [matchId, matchData[1]] }),
+        publicClient.readContract({ address: ARENA_ADDRESS, abi: ARENA_ABI, functionName: 'hasPlayed', args: [matchId, matchData[2]] })
+    ]) as [boolean, boolean];
+
+    if (!challengerPlayed || !opponentPlayed) return; // Wait for both
+
+    activeGameLocks.add(matchIdStr + '_resolve');
+    try {
+        console.log(chalk.cyan(`⚖️ Resolving Match #${matchId} (Global Referee Mode)...`));
+
+        // specific game logic fetching
+        const [challengerMove, opponentMove] = await Promise.all([
+            publicClient.readContract({ address: ARENA_ADDRESS, abi: ARENA_ABI, functionName: 'playerMoves', args: [matchId, matchData[1]] }),
+            publicClient.readContract({ address: ARENA_ADDRESS, abi: ARENA_ABI, functionName: 'playerMoves', args: [matchId, matchData[2]] })
+        ]) as [number, number];
+
+        const winner = determineWinner(matchData[4], matchData[1], Number(challengerMove), matchData[2], Number(opponentMove));
+
+        const { request } = await publicClient.simulateContract({
+            address: ARENA_ADDRESS, abi: ARENA_ABI, functionName: 'resolveMatch',
+            args: [matchId, winner as `0x${string}`], account
+        });
+        const hash = await walletClient.writeContract(request);
+        console.log(chalk.green(`✅ Match #${matchId} Resolved! Winner: ${winner === matchData[1] ? 'Challenger' : 'Opponent'}`));
+
+    } catch (e: any) {
+        // Ignore "Match not in progress" errors if it was already resolved concurrently
+        if (!e.message?.includes('Match not in progress')) {
+            console.error(chalk.red(`Failed to resolve #${matchId}:`), e.shortMessage || e.message);
+        }
+    } finally {
+        activeGameLocks.delete(matchIdStr + '_resolve');
+    }
+}
+
+function determineWinner(gameType: number, p1: string, m1: number, p2: string, m2: number): string {
+    let p1Wins = false;
+    let isTie = false;
+
+    if (gameType === 0) { // RPS
+        if (m1 === m2) isTie = true;
+        else if ((m1 === 0 && m2 === 2) || (m1 === 1 && m2 === 0) || (m1 === 2 && m2 === 1)) p1Wins = true;
+    } else if (gameType === 1) { // Dice
+        if (m1 === m2) isTie = true;
+        else if (m1 > m2) p1Wins = true;
+    } else if (gameType === 3) { // Coin Flip
+        // Oracle Flip logic - re-simulated for determination 
+        // NOTE: Ideally, the Agent should store the flip result OR use blockhash randomness. 
+        // For this hackathon version, we act as the random oracle at resolution time.
+        const oracleFlip = Math.random() > 0.5 ? 1 : 0; // 0=Heads, 1=Tails
+        console.log(chalk.gray(`🔮 Oracle Flip: ${oracleFlip === 0 ? 'Heads' : 'Tails'}`));
+
+        const p1Correct = m1 === oracleFlip;
+        const p2Correct = m2 === oracleFlip;
+
+        if (p1Correct && !p2Correct) p1Wins = true;
+        else if (!p1Correct && p2Correct) p1Wins = false;
+        else isTie = true; // Both correct or both wrong
+    }
+
+    if (isTie) {
+        // Fair Tie-Breaker (50/50)
+        const luckyWinner = Math.random() > 0.5 ? p1 : p2;
+        console.log(chalk.yellow(`🤝 TIE detected! Flipping coin for tie-breaker... Winner: ${luckyWinner === p1 ? 'Challenger' : 'Opponent'}`));
+        return luckyWinner;
+    }
+
+    return p1Wins ? p1 : p2;
 }
 
 startAgent();

@@ -7,8 +7,8 @@ export const CONTRACT_ADDRESSES = {
   GAME_ASSETS: '0x0fC01Df600f960d94A2196913bD3a0F2577eF168',
   GAME_LOTTERY: '0x631d234ea1b750540D546b435903a6cde777Ee82',
   ARCADE_PLATFORM: '0xDc8d900E64c5891b0A5D7dF0aFF4e581ee448aFE',
-  ARENA_PLATFORM: '0x7820903fC53197Ce02bDf9785AC04dd8e891BBb7', // MAINNET
-  AI_AGENT: '0xa91D5A0a64ED5eeF11c4359C4631279695A338ef',
+  ARENA_PLATFORM: '0x30af30ec392b881b009a0c6b520ebe6d15722e9b', // Updates State Storage
+  AI_AGENT: '0x2E33d7D5Fa3eD4Dd6BEb95CdC41F51635C4b7Ad1',
   ARENA_TOKEN: '0x1D3a53f0F52053D301374647e70B87279D5F7777', // MAINNET
   AGENT_REGISTRY: '0x95884fe0d2a817326338735Eb4f24dD04Cf20Ea7' // MAINNET
 };
@@ -611,15 +611,22 @@ export const ARCADE_PLATFORM_ABI = [
     "type": "function"
   },
   {
-      "inputs": [],
-      "name": "getPlayerCount",
-      "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-      "stateMutability": "view",
-      "type": "function"
+    "inputs": [],
+    "name": "getPlayerCount",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
   }
 ];
 
 export const ARENA_PLATFORM_ABI = [
+  {
+    "inputs": [],
+    "name": "matchCounter",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
   {
     "anonymous": false,
     "inputs": [
@@ -821,6 +828,54 @@ export const ARENA_PLATFORM_ABI = [
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "hasPlayed",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "playerMoves",
+    "outputs": [
+      {
+        "internalType": "uint8",
+        "name": "",
+        "type": "uint8"
       }
     ],
     "stateMutability": "view",

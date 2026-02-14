@@ -1,10 +1,16 @@
-# ⚔️ Arena AI Champion: The First Autonomous Gaming Agent on Monad
+# ⚔️ Arena Agent (Cyberpunk Edition)
 
-[![Monad Testnet](https://img.shields.io/badge/Network-Monad%20Testnet-blueviolet)](https://monad.xyz/)
-[![Agent Track](https://img.shields.io/badge/Moltiverse%20Hackathon-Agent%2BToken%20Track-blue)](https://nad.fun/)
-[![EIP-8004](https://img.shields.io/badge/Standard-EIP--8004-green)](https://github.com/ethereum/EIPs/pull/8004)
+> **"Where Probability Meets Neon."**
+> A fully autonomous, AI-driven gaming agent deployed on **Monad Testnet**.  
+> Challenge the AI in Rock-Paper-Scissors, Dice Roll, or Coin Flip and win $MON.
 
-**Arena AI Champion** is a fully autonomous AI gaming agent built for the Monad ecosystem. It allows players to engage in high-stakes, 1v1 strategic matches against an AI that adapts to their gameplay in real-time. Powered by a 1st-order Markov Chain model, the agent learns your patterns to gain a competitive edge while operating entirely on-chain.
+![License](https://img.shields.io/badge/license-MIT-blue.svg) ![Monad](https://img.shields.io/badge/Network-Monad_Testnet-purple.svg) ![Status](https://img.shields.io/badge/Status-Live-green.svg)
+
+## 🌟 Key Features
+- **🤖 Autonomous AI Agent**: Uses Markov Chain transitions to model opponent behavior and predict moves.
+- **🎨 Cyberpunk Glass UI**: A premium, responsive interface featuring neon glassmorphism, animated grids, and real-time feeds.
+- **⚡ Ultra-Fast UX**: Built on `multicall3` for batch data fetching, ensuring instant load times and live updates.
+- **🛡️ EIP-8004 Architecture**: Fully compliant with intelligent agent standards for on-chain registration and verification.
 
 ---
 
@@ -13,20 +19,19 @@
 - **🌐 Live Frontend:** [https://game-arena-ten.vercel.app/](https://game-arena-ten.vercel.app/)
 - **🤖 Live AI Agent:** [https://gamearena-production.up.railway.app](https://gamearena-production.up.railway.app)
 - **🎮 Play Now (Local):** `cd frontend && npm run dev`
-- **🤖 Agent Address:** `0xa91D5A0a64ED5eeF11c4359C4631279695A338ef`
+- **🤖 Agent Address:** `0x2E33d7D5Fa3eD4Dd6BEb95CdC41F51635C4b7Ad1`
 - **💎 $ARENA Token:** [Trade on nad.fun](https://nad.fun/token/0x1D3a53f0F52053D301374647e70B87279D5F7777)
-- **🔍 Explorer:** [View Platform on Monad Vision](https://monadvision.com/address/0x7820903fC53197Ce02bDf9785AC04dd8e891BBb7)
+- **🔍 Explorer:** [View Platform on Monad Vision](https://monadscan.com/address/0x30af30ec392b881b009a0c6b520ebe6d15722e9b)
 
 ---
 
 ## 🎲 Game Modes
 
-Challenge the AI in four balanced gaming categories:
+Challenge the AI in three balanced gaming categories:
 
 1.  **✊ Rock-Paper-Scissors**: Advanced pattern recognition battle.
 2.  **🎲 Dice Roll**: High-stakes numerical prediction.
-3.  **⚔️ Strategy Battle**: Tactical selection from 0-9.
-4.  **🪙 Coin Flip**: Pure prediction vs internal probability models.
+3.  **🪙 Coin Flip**: Pure prediction vs internal probability models.
 
 *Note: The Arena handles tie-breakers with a "Player Wins Ties" fairness rule.*
 
@@ -60,36 +65,98 @@ The agent operates a continuous autonomous loop, monitoring the Monad blockchain
 
 ---
 
+## 🏗️ How it Works
+
+The project uses a **Hybrid Architecture** combining on-chain security with off-chain AI logic:
+
+1.  **Smart Contract (`ArenaPlatform.sol`)**:
+    -   Holds the funds (wagers) in escrow.
+    -   Records game state (players, moves, status).
+    -   Releases payouts only when a valid winner is declared.
+
+2.  **AI Agent (`ArenaAgent.ts`)**:
+    -   Listens to `MatchProposed` events.
+    -   Analyzes opponent history using a **Markov Chain Model**.
+    -   Submits its move on-chain (`playMove`).
+    -   If it wins, it claims the prize (`resolveMatch`).
+
+3.  **Frontend (React + Wagmi)**:
+    -   Directly interacts with the contract.
+    -   Uses **Optimistic UI** and **Event Listening** to update instantly.
+    -   Fetches moves from both **Contract State** (fast) and **Event Logs** (fallback) to ensure data is always visible.
+
 ## 📦 Getting Started
 
 ### 1. Requirements
 - Node.js (v18+)
 - Metamask (configured for Monad Testnet)
 
-### 2. Startup
+### 2. Startup Guide
+
+#### A. Frontend (Player Mode)
+To play as a human against the AI:
 ```bash
-# Clone the repository
-git clone https://github.com/HACK3R-CRYPTO/GameArena.git
-cd GameArena
-
-# Install dependencies
+cd frontend
 npm install
-cd frontend && npm install
-cd ../agent && npm install
+npm run dev
+# Open http://localhost:5173
+```
 
-# Start the services
-npm run dev # Launches frontend
-npm start # Launches AI Agent (requires .env cleanup)
+#### B. AI Agent (Operator Mode)
+To run the autonomous host Agent (The "Boss"):
+```bash
+cd agent
+npm install
+# Create .env with PRIVATE_KEY=...
+npm start
+```
+*The Agent will automatically listen for matches and respond using its Markov Model.*
+
+#### C. AI Challenging AI (Developer Mode) 🤖⚔️🤖
+Want to pit your own AI against ours? You can run the `ExternalBot` script.
+This script is a reference implementation of a challenger bot.
+
+1. Configure your Challenger Wallet in `agent/.env` (or let it generate a random one).
+2. Run the bot:
+```bash
+cd agent
+npx ts-node src/ExternalBot.ts
+```
+The bot will:
+- Fund itself (if using a testnet faucet logic or existing funds).
+- **Propose a Match** on-chain.
+- Wait for the Arena Agent to accept.
+- **Submit a Strategic Move**.
+- Wait for resolution and claim prizes.
+
+---
+
+## 🏗️ Architecture
+
+```mermaid
+graph TD
+    User[Human Player] -->|1. Propose Match| Contract[ArenaPlatform Contract]
+    ExtBot[External AI Bot] -->|1. Propose Match| Contract
+    
+    Contract -->|Event: MatchProposed| Agent[Arena AI Agent]
+    
+    Agent -->|2. Analyze & Accept| Contract
+    
+    User -->|3. Reveal Move| Contract
+    ExtBot -->|3. Reveal Move| Contract
+    Agent -->|3. Reveal Move| Contract
+    
+    Contract -->|4. Resolve & Payout| Winner[Winner Wallet]
 ```
 
 ---
 
-## 📜 Deployed Contracts (Monad Testnet)
+## 📜 Deployed Contracts (Monad Mainnet)
 
 | Contract | Address |
 | :--- | :--- |
-| **Arena AI Platform** | `0x7820903fC53197Ce02bDf9785AC04dd8e891BBb7` |
-| **Arena AI Agent** | `0xa91D5A0a64ED5eeF11c4359C4631279695A338ef` |
+| **Arena AI Platform** | `0x30af30ec392b881b009a0c6b520ebe6d15722e9b` |
+| **Arena AI Agent** | `0x2E33d7D5Fa3eD4Dd6BEb95CdC41F51635C4b7Ad1` |
 | **$ARENA Token** | `0x1D3a53f0F52053D301374647e70B87279D5F7777` |
 | **Agent Registry** | `0x95884fe0d2a817326338735Eb4f24dD04Cf20Ea7` |
 
