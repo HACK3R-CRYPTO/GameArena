@@ -59,7 +59,8 @@ function Navigation() {
   };
 
   const navLinks = [
-    { path: '/', label: 'Arena' }
+    { path: '/', label: 'Arena' },
+    { path: 'https://nad.fun/tokens/0x2117449eA6630857D4D656D0D2f5e1C689C67777', label: '$ARENA', external: true }
   ];
 
   return (
@@ -78,19 +79,30 @@ function Navigation() {
           </div>
         </Link>
 
-        {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-6">
           {navLinks.map((link) => (
-            <Link
-              key={link.path}
-              to={link.path}
-              className={`font-mono text-sm tracking-wide transition-colors ${isActivePath(link.path)
-                ? 'text-purple-400'
-                : 'text-gray-500 hover:text-white'
-                }`}
-            >
-              {link.label}
-            </Link>
+            link.external ? (
+              <a
+                key={link.path}
+                href={link.path}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-mono text-sm tracking-wide text-purple-400 hover:text-purple-300 transition-colors"
+              >
+                {link.label}
+              </a>
+            ) : (
+              <Link
+                key={link.path}
+                to={link.path}
+                className={`font-mono text-sm tracking-wide transition-colors ${isActivePath(link.path)
+                  ? 'text-purple-400'
+                  : 'text-gray-500 hover:text-white'
+                  }`}
+              >
+                {link.label}
+              </Link>
+            )
           ))}
         </div>
 

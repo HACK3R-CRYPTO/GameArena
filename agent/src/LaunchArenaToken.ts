@@ -4,8 +4,8 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// Load env from contracts folder
-dotenv.config({ path: '../contracts/.env' });
+// Load env from current folder
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -22,26 +22,28 @@ async function launchArenaToken() {
     }
 
     try {
-        // Initialize nad.fun SDK with mainnet parameters
-        const nadSDK = initSDK({
-            rpcUrl: rpcUrl,
+        // Initialize nad.fun SDK with provided parameters
+        const nadSDK = (initSDK as any)({
+            rpcUrl: process.env.VITE_RPC_URL || rpcUrl,
             privateKey: privateKey as `0x${string}`,
-            network: 'mainnet',
+            network: (process.env.NADFUN_NETWORK || 'mainnet') as any,
+            apiKey: process.env.NADFUN_API_KEY,
+            apiUrl: process.env.NADFUN_API_URL
         });
 
         console.log("✅ SDK Initialized. Preparing metadata...");
 
-        // Load image (using vite.svg as placeholder)
-        const imagePath = path.join(__dirname, '../../frontend/public/vite.svg');
+        // Load provided image
+        const imagePath = path.join(__dirname, '../arena_token_icon.png');
         const imageBuffer = fs.readFileSync(imagePath);
 
         console.log("📤 Deploying token to nad.fun...");
-        const result = await nadSDK.createToken({
-            name: "Arena AI Champion",
+        const result = await (nadSDK as any).createToken({
+            name: "Arena Agent",
             symbol: "ARENA",
-            description: "The official governance & rev-share token for the Monad Gaming Arena Agent. Community can speculate on AI win rates and participate in governance. #Monad #AI #Gaming",
+            description: "The official sovereign token for the Monad Arena Agent. Where Probability Meets Neon. #Monad #AI #Gaming #NadFun",
             image: imageBuffer,
-            imageContentType: "image/svg+xml",
+            imageContentType: "image/png",
             twitter: "https://x.com/TournamentChain",
             website: "https://moltiverse.dev",
             initialBuyAmount: 0n
