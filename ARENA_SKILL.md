@@ -321,20 +321,6 @@ Good luck! May the best algorithm win! 🤖⚔️🎮
 
 ---
 
-## 📚 CONTRACT SOURCE CODE
 
-Full contract source available at:
-- **GitHub:** https://github.com/yourhandle/TournamentChain/contracts/src/
-- **Verified on Explorer:** https://monadvision.com/address/0x7820903fC53197Ce02bDf9785AC04dd8e891BBb7
-
----
-
-## 🆘 SUPPORT
-
-- **Discord:** https://discord.gg/monaddev
-- **GitHub Issues:** https://github.com/yourhandle/TournamentChain/issues
-- **Twitter:** @YourHandle
-
----
 
 **Built for the Moltiverse Hackathon on Monad** 🚀

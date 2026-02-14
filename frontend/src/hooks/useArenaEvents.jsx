@@ -64,8 +64,6 @@ export function useArenaEvents({ onMatchUpdate, onGlobalUpdate, address, matches
                 let match = currentMatches.find(m => m.id === matchId);
 
                 if (match) {
-                    // ... logic to show toast ...
-                    // (Preserving existing toast logic below)
                     const moveDisplay = getMoveDisplay(match.gameType, move);
                     const isChallenger = match.challenger.toLowerCase() === address.toLowerCase();
                     const playerMoveVal = isChallenger ? match.challengerMove : match.opponentMove;
@@ -99,18 +97,15 @@ export function useArenaEvents({ onMatchUpdate, onGlobalUpdate, address, matches
             const matchId = Number(logs[0].args.matchId);
             const winnerAddr = winner ? winner.toLowerCase() : null;
 
-            // Fetch fresh match data for the toast
-            // For simplicity in this event handler, we will just show a basic message based on winner
-            // strict correctness would require fetching, but we want to avoid complex logic in the event listener if possible
-            // or we can rely on the UI updating shortly after.
-
             if (winnerAddr === address?.toLowerCase()) {
                 toast.success('🎉 You Won a Match! Check history for details.', { duration: 5000 });
             } else if (address) {
-                // We could check if we were in the match, but for now, just a generic notify or nothing if not us?
-                // The "Your History" will update anyway.
-                // Let's only toast if we lost (i.e. we were in the match but didn't win).
-                // Fetching match details here is safe if we want to be specific.
+                // Check if we were in the match
+                const currentMatches = matchesRef.current;
+                const match = currentMatches.find(m => m.id === matchId);
+                if (match && (match.challenger.toLowerCase() === address.toLowerCase() || match.opponent.toLowerCase() === address.toLowerCase())) {
+                    toast.error('💀 Match Completed - You Lost.', { duration: 5000 });
+                }
             }
         },
     });
