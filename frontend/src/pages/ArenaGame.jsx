@@ -8,6 +8,7 @@ import { toast } from 'react-hot-toast';
 import { useArenaEvents } from '../hooks/useArenaEvents';
 import { MATCH_STATUS, GAME_TYPES, MOVES, getMoveDisplay } from '../utils/gameLogic';
 import DocsModal from '../components/DocsModal';
+import MoltbookFeed from '../components/MoltbookFeed';
 
 
 
@@ -24,6 +25,7 @@ const ArenaGame = () => {
     const [activeMatch, setActiveMatch] = useState(null);
     const [selectedMove, setSelectedMove] = useState(null);
     const [showDocs, setShowDocs] = useState(false);
+    const [activeTab, setActiveTab] = useState('chain'); // 'chain' or 'social'
 
     // Fetch Agent Identity (EIP-8004)
     const { data: agentProfile } = useReadContract({
@@ -305,7 +307,7 @@ const ArenaGame = () => {
                 if (freshIds) fetchMatchDetails(freshIds);
             });
             fetchGlobalMatches();
-        }, 15000);
+        }, 30000); // Increased to 30s for stability
 
         return () => clearInterval(interval);
     }, [address, isConnected, refetchMatches, fetchMatchDetails, fetchGlobalMatches]);
@@ -647,42 +649,75 @@ const ArenaGame = () => {
                         )}
                     </div>
 
-                    {/* Global Feed Panel */}
-                    <div className="bg-[#0a0a0a] border border-white/10 rounded-lg p-4 h-[300px] overflow-hidden flex flex-col">
-                        <h3 className="text-xs font-bold text-gray-400 uppercase mb-3 flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                            Live_Feed
-                        </h3>
-                        <div className="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
-                            {globalMatches.map(m => {
-                                const isMeChallenger = m.challenger?.toLowerCase() === address?.toLowerCase();
-                                const isMeOpponent = m.opponent?.toLowerCase() === address?.toLowerCase();
+                    {/* Global Feed / Social Panel */}
+                    <div className="bg-[#0a0a0a] border border-white/10 rounded-lg h-[450px] overflow-hidden flex flex-col">
+                        <div className="flex border-b border-white/5">
+                            <button
+                                onClick={() => setActiveTab('chain')}
+                                className={`flex-1 py-3 text-[10px] uppercase font-bold tracking-widest transition-all ${activeTab === 'chain'
+                                    ? 'text-purple-400 bg-purple-900/10 border-b-2 border-purple-500'
+                                    : 'text-gray-500 hover:text-gray-300'}`}
+                            >
+                                On_Chain_Events
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('social')}
+                                className={`flex-1 py-3 text-[10px] uppercase font-bold tracking-widest transition-all ${activeTab === 'social'
+                                    ? 'text-purple-400 bg-purple-900/10 border-b-2 border-purple-500'
+                                    : 'text-gray-500 hover:text-gray-300'}`}
+                            >
+                                Social_Hub
+                            </button>
+                        </div>
 
-                                const challengerDisplay = isMeChallenger ? 'YOU' : `${m.challenger.slice(0, 4)}...${m.challenger.slice(-4)}`;
-                                const opponentDisplay = isMeOpponent ? 'YOU' : `${m.opponent.slice(0, 4)}...${m.opponent.slice(-4)}`;
+                        <div className="flex-1 overflow-hidden p-4">
+                            {activeTab === 'chain' ? (
+                                <div className="h-full overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                                    <h3 className="text-xs font-bold text-gray-400 uppercase mb-3 flex items-center gap-2">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                                        Live_History
+                                    </h3>
+                                    {globalMatches.map(m => {
+                                        const isMeChallenger = m.challenger?.toLowerCase() === address?.toLowerCase();
+                                        const isMeOpponent = m.opponent?.toLowerCase() === address?.toLowerCase();
 
-                                const isAiWinner = m.winner?.toLowerCase() === CONTRACT_ADDRESSES.AI_AGENT.toLowerCase();
+                                        const challengerDisplay = isMeChallenger ? 'YOU' : `${m.challenger.slice(0, 4)}...${m.challenger.slice(-4)}`;
+                                        const opponentDisplay = isMeOpponent ? 'YOU' : `${m.opponent.slice(0, 4)}...${m.opponent.slice(-4)}`;
 
-                                return (
-                                    <div key={m.id} className="text-[10px] font-mono border-l-2 border-white/10 pl-2 py-1 hover:border-purple-500 transition-colors">
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-500">#{m.id}</span>
-                                            <span className="text-gray-600">{new Date(m.createdAt * 1000).toLocaleTimeString()}</span>
-                                        </div>
-                                        <div className="text-gray-300 truncate font-bold text-xs my-0.5">
-                                            <span className={isMeChallenger ? "text-purple-400" : ""}>{challengerDisplay}</span>
-                                            <span className="text-gray-600 mx-1">vs</span>
-                                            <span className={isMeOpponent ? "text-purple-400" : ""}>{opponentDisplay}</span>
-                                        </div>
-                                        <div className="flex justify-between mt-0.5">
-                                            <span className="text-gray-500">{GAME_TYPES.find(g => g.id === m.gameType)?.label}</span>
-                                            <span className={`font-bold ${isAiWinner ? 'text-red-400' : 'text-green-400'}`}>
-                                                {m.status === 2 ? (isAiWinner ? 'AI WIN' : 'PLR WIN') : '...'}
-                                            </span>
-                                        </div>
-                                    </div>
-                                );
-                            })}
+                                        const isAiWinner = m.winner?.toLowerCase() === CONTRACT_ADDRESSES.AI_AGENT.toLowerCase();
+
+                                        return (
+                                            <div key={m.id} className="text-[10px] font-mono border-l-2 border-white/10 pl-2 py-2 hover:border-purple-500 transition-colors bg-white/[0.02] rounded-r">
+                                                <div className="flex justify-between">
+                                                    <span className="text-gray-500">#{m.id}</span>
+                                                    <span className="text-gray-600 font-bold">{GAME_TYPES.find(g => g.id === m.gameType)?.label}</span>
+                                                </div>
+                                                <div className="text-gray-300 truncate font-bold text-xs my-0.5">
+                                                    <span className={isMeChallenger ? "text-purple-400" : ""}>{challengerDisplay}</span>
+                                                    <span className="text-gray-600 mx-1">vs</span>
+                                                    <span className={isMeOpponent ? "text-purple-400" : ""}>{opponentDisplay}</span>
+                                                </div>
+                                                <div className="flex justify-between mt-1 items-center">
+                                                    <span className="text-gray-500 font-bold">{formatEther(m.wager)} MON</span>
+                                                    <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${m.status === 2
+                                                        ? (isAiWinner ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-green-500/10 text-green-400 border border-green-500/20')
+                                                        : 'bg-white/5 text-gray-500'}`}>
+                                                        {m.status === 2 ? (isAiWinner ? 'AI_WIN' : 'PLAYER_WIN') : 'WAITING...'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <div className="h-full overflow-y-auto px-1 custom-scrollbar">
+                                    <h3 className="text-xs font-bold text-gray-400 uppercase mb-3 flex items-center gap-2">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></span>
+                                        Build_In_Public
+                                    </h3>
+                                    <MoltbookFeed agentAddress={CONTRACT_ADDRESSES.AI_AGENT} />
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

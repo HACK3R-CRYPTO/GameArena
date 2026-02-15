@@ -2,6 +2,7 @@ import { createPublicClient, createWalletClient, http, parseAbiItem, formatEther
 import { privateKeyToAccount } from 'viem/accounts';
 import * as dotenv from 'dotenv';
 import chalk from 'chalk';
+import { MoltbookService } from './services/MoltbookService.js';
 
 dotenv.config();
 dotenv.config({ path: '../contracts/.env' });
@@ -144,6 +145,9 @@ class OpponentModel {
 const model = new OpponentModel();
 const respondedMatches = new Set<string>();
 const processingAcceptance = new Set<string>();
+const completedMatches = new Set<string>(); // Skip these on future scans
+let lastKnownMatchCount = 0n;
+const moltbook = new MoltbookService();
 
 const activeGameLocks = new Set<string>();
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
@@ -171,20 +175,37 @@ async function scanForMatches() {
             functionName: 'matchCounter',
         }), "matchCounter") as bigint;
 
-        console.log(chalk.gray(`Scanning match history... Total matches: ${matchCounter}`));
-
         if (matchCounter === 0n) return;
 
-        // BATCH FETCH: Use Multicall to get all matches in ONE request
-        const matchContracts: any[] = [];
+        // Only scan matches we haven't marked as completed
+        // Build list of match IDs to check (skip completed ones)
+        const toCheck: bigint[] = [];
         for (let i = 0n; i < matchCounter; i++) {
-            matchContracts.push({
-                address: ARENA_ADDRESS,
-                abi: ARENA_ABI,
-                functionName: 'matches',
-                args: [i]
-            });
+            if (!completedMatches.has(i.toString())) {
+                toCheck.push(i);
+            }
         }
+
+        const isNew = matchCounter > lastKnownMatchCount;
+        if (isNew) {
+            console.log(chalk.gray(`New matches detected! Total: ${matchCounter} | Scanning ${toCheck.length} active`));
+        } else if (toCheck.length > 0) {
+            console.log(chalk.gray(`Scanning ${toCheck.length} active matches (${completedMatches.size} completed, skipped)`));
+        } else {
+            // Nothing to scan — all matches are completed
+            return;
+        }
+        lastKnownMatchCount = matchCounter;
+
+        if (toCheck.length === 0) return;
+
+        // BATCH FETCH: Only fetch active/pending matches
+        const matchContracts = toCheck.map(id => ({
+            address: ARENA_ADDRESS,
+            abi: ARENA_ABI,
+            functionName: 'matches',
+            args: [id]
+        }));
 
         const results = await withRetry(() => publicClient.multicall({ contracts: matchContracts }), "multicallMatches");
 
@@ -192,37 +213,45 @@ async function scanForMatches() {
             const res = results[i];
             if (!res || res.status !== 'success') continue;
             const m = res.result as any;
-            const matchId = BigInt(i);
+            const matchId = toCheck[i];
+            if (matchId === undefined) continue;
             const matchIdStr = matchId.toString();
+
+            // Status 2 = Completed, 3 = Cancelled — mark and skip forever
+            if (m[5] === 2 || m[5] === 3) {
+                completedMatches.add(matchIdStr);
+                continue;
+            }
 
             if (processingAcceptance.has(matchIdStr)) continue;
 
-            // 1. Accept pending matches
+            // 1. Accept pending matches (Status 0)
             if (m[5] === 0 && (m[2].toLowerCase() === account.address.toLowerCase() || m[2] === '0x0000000000000000000000000000000000000000')) {
                 await handleChallenge(matchId, m[1], m[3], m[4]);
             }
 
             // 2. Process Accepted Matches (Play Move OR Resolve)
-            // Status 1 = Accepted
             if (m[5] === 1) {
-                // A. Try to play our move (if we are in match)
-                await tryPlayMove(matchId, m); // This will do its own checks
-
-                // B. Try to Resolve (if both played) - GLOBAL REFEREE
+                await tryPlayMove(matchId, m);
                 await tryResolveMatch(matchId, m);
             }
         }
     } catch (e) {
-        console.error(chalk.red("Error scanning for matches:", e));
+        console.error(chalk.red("Error scanning for matches:"), e);
     }
 }
 
 async function startAgent() {
     try {
-        const blockNumber = await publicClient.getBlockNumber();
+        console.log(chalk.gray('Connecting to Monad RPC...'));
+        const blockNumber = await Promise.race([
+            publicClient.getBlockNumber(),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('RPC connection timeout (15s)')), 15000))
+        ]);
         console.log(chalk.blue(`Connected to network. Current block: ${blockNumber}`));
-    } catch (err) {
-        console.error(chalk.red("Failed to connect to network:", err));
+    } catch (err: any) {
+        console.error(chalk.red(`Failed to connect to network: ${err.message || err}`));
+        console.log(chalk.yellow('Continuing anyway — will retry on first scan...'));
     }
     console.log(chalk.blue.bold('🤖 Arena AI Agent V3 (EIP-8004) Started'));
 
@@ -260,7 +289,7 @@ async function startAgent() {
 
     console.log(chalk.gray(`Wallet: ${account.address} | Platform: ${ARENA_ADDRESS}`));
 
-    setInterval(scanForMatches, 20000); // Check every 20s to avoid 429s
+    setInterval(scanForMatches, 30000); // Check every 30s — event watchers handle real-time
     await scanForMatches();
 
     publicClient.watchEvent({
@@ -330,6 +359,14 @@ async function handleChallenge(matchId: bigint, challenger: string, wager: bigin
         const hash = await walletClient.writeContract(request);
         console.log(chalk.green(`Match #${matchId} accepted! Hash: ${hash}`));
         await publicClient.waitForTransactionReceipt({ hash });
+
+        // Social Update: Match Accepted
+        await moltbook.postChallengeAccepted(
+            matchId.toString(),
+            challenger,
+            formatEther(wager),
+            GAME_NAMES[gameType] || 'Unknown'
+        );
     } catch (error: any) {
         processingAcceptance.delete(matchId.toString()); // Allow retry if failed
         if (error.message?.includes('available')) {
@@ -422,10 +459,36 @@ async function tryResolveMatch(matchId: bigint, matchData: any) {
         const hash = await walletClient.writeContract(request);
         console.log(chalk.green(`✅ Match #${matchId} Resolved! Winner: ${winner === matchData[1] ? 'Challenger' : 'Opponent'}`));
 
+        // Social Update: Match Result
+        await moltbook.postMatchResult(
+            matchId.toString(),
+            matchData[1], // Challenger
+            matchData[2], // Opponent
+            winner,
+            formatEther(matchData[3] * 2n), // Total Prize Estimation (approx)
+            GAME_NAMES[matchData[4]] || 'Unknown'
+        );
+
     } catch (e: any) {
-        // Ignore "Match not in progress" errors if it was already resolved concurrently
-        if (!e.message?.includes('Match not in progress')) {
-            console.error(chalk.red(`Failed to resolve #${matchId}:`), e.shortMessage || e.message);
+        const errMsg = e.shortMessage || e.message || '';
+        if (errMsg.includes('Match not in progress')) {
+            console.log(chalk.gray(`Match #${matchId} already resolved by another party.`));
+            // Still post to Moltbook — we participated in this match
+            try {
+                const resolvedWinner = matchData[6]; // winner field from match struct
+                if (resolvedWinner && resolvedWinner !== '0x0000000000000000000000000000000000000000') {
+                    await moltbook.postMatchResult(
+                        matchId.toString(),
+                        matchData[1], matchData[2], resolvedWinner,
+                        formatEther(matchData[3] * 2n),
+                        GAME_NAMES[matchData[4]] || 'Unknown'
+                    );
+                }
+            } catch (postErr: any) {
+                console.error(chalk.yellow(`[MOLTBOOK] Post failed after external resolve: ${postErr.message}`));
+            }
+        } else {
+            console.error(chalk.red(`Failed to resolve #${matchId}: ${errMsg}`));
         }
     } finally {
         activeGameLocks.delete(matchIdStr + '_resolve');
