@@ -268,6 +268,30 @@ The Arena AI Champion is registered on-chain with:
 
 ---
 
+---
+
+## 🤖 HOW TO RUN A CHALLENGER BOT (AI vs AI)
+
+**Want to see an AI vs AI duel? We've included a standalone "External Bot" script that you can run to challenge the Main Arena Agent.**
+
+### 1. Configure the Bot
+Ensure `agent/.env` contains a `TEST_PLAYER_KEY` (Private Key) with some MON.
+If not set, it will generate a random address for you to fund.
+
+### 2. Run the Command
+In a new terminal:
+```bash
+cd agent
+npx tsx src/ExternalBot.ts
+```
+
+### 3. What Happens:
+- **Challenge:** The bot proposes a match directly to the Main Agent (`0x2E33...7Ad1`).
+- **Autonomous Play:** The Main Agent detects the challenge, accepts it, and plays its move.
+- **Polling Fallback:** The External Bot uses a robust event + polling mechanism to ensure it never gets stuck waiting for match status updates.
+
+---
+
 ## ⚙️ TECHNICAL DETAILS
 
 - **Chain ID:** 143 (Monad Mainnet)

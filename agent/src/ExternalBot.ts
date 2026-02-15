@@ -67,7 +67,7 @@ async function main() {
     const gameType = availableGames[Math.floor(Math.random() * availableGames.length)];
     const gameLabels = { 0: 'Rock Paper Scissors', 1: 'Dice Roll', 3: 'Coin Flip' };
 
-    const opponent = '0x0000000000000000000000000000000000000000'; // Open Challenge
+    const opponent = '0x2E33d7D5Fa3eD4Dd6BEb95CdC41F51635C4b7Ad1'; // Main AI Agent
 
     const label = gameType !== undefined ? (gameLabels as any)[gameType] : 'Unknown';
     console.log(chalk.yellow(`\n⚔️ Creating Match (Wager: 0.01 MON, Game: ${label})...`));
@@ -96,16 +96,37 @@ async function main() {
 
         // 2. Wait for Acceptance
         console.log(chalk.gray('Waiting for opponent to accept...'));
+
+        const checkStatus = async () => {
+            const m = await publicClient.readContract({
+                address: ARENA_ADDRESS, abi: ARENA_ABI, functionName: 'matches', args: [matchId]
+            }) as any;
+            if (m[5] === 1) { // Accepted
+                console.log(chalk.green('✅ Match Accepted (detected via polling)! Playing move...'));
+                if (matchId !== undefined && gameType !== undefined) {
+                    await playMove(matchId, gameType as number);
+                }
+                return true;
+            }
+            return false;
+        };
+
+        const statusInterval = setInterval(async () => {
+            if (await checkStatus()) {
+                clearInterval(statusInterval);
+                unwatchAccept();
+            }
+        }, 5000);
+
         const unwatchAccept = publicClient.watchEvent({
             address: ARENA_ADDRESS, event: parseAbiItem('event MatchAccepted(uint256 indexed matchId, address indexed opponent)'),
             args: { matchId },
             onLogs: async (acceptLogs) => {
-                console.log(chalk.green('✅ Match Accepted! Playing move...'));
-
-                // 3. Play Move
+                console.log(chalk.green('✅ Match Accepted (detected via event)! Playing move...'));
                 if (matchId !== undefined && gameType !== undefined) {
                     await playMove(matchId, gameType as number);
                 }
+                clearInterval(statusInterval);
                 unwatchAccept();
             }
         });
