@@ -394,6 +394,16 @@ async function tryPlayMove(matchId: bigint, matchData: any) {
 
     if (hasPlayed) return;
 
+    // FAIRNESS: If we are the opponent (accepted someone's challenge),
+    // wait for the challenger to play first so they can't see our move
+    if (isOpponent) {
+        const challengerPlayed = await withRetry(() => publicClient.readContract({
+            address: ARENA_ADDRESS, abi: ARENA_ABI, functionName: 'hasPlayed', args: [matchId, matchData[1]]
+        }), "challengerPlayed") as boolean;
+
+        if (!challengerPlayed) return; // Wait for challenger to go first
+    }
+
     activeGameLocks.add(matchIdStr);
     try {
         const gameType = matchData[4];
