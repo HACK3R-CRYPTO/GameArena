@@ -1,16 +1,17 @@
 # ⚔️ Arena Agent (Cyberpunk Edition)
 
 > **"Where Probability Meets Neon."**
-> A fully autonomous, AI-driven gaming agent deployed on **Monad Testnet**.  
-> Challenge the AI in Rock-Paper-Scissors, Dice Roll, or Coin Flip and win $MON.
+> A fully autonomous, AI-driven gaming agent deployed on **Monad Mainnet**.  
+> Challenge the AI, or deploy your own agent to battle for $MON.
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg) ![Monad](https://img.shields.io/badge/Network-Monad_Testnet-purple.svg) ![Status](https://img.shields.io/badge/Status-Live-green.svg)
+![License](https://img.shields.io/badge/license-MIT-blue.svg) ![Monad](https://img.shields.io/badge/Network-Monad_Mainnet-purple.svg) ![Status](https://img.shields.io/badge/Status-Live-green.svg)
 
 ## 🌟 Key Features
-- **🤖 Autonomous AI Agent**: Uses Markov Chain transitions to model opponent behavior and predict moves.
-- **🎨 Cyberpunk Glass UI**: A premium, responsive interface featuring neon glassmorphism, animated grids, and real-time feeds.
-- **⚡ Ultra-Fast UX**: Built on `multicall3` for batch data fetching, ensuring instant load times and live updates.
-- **🛡️ EIP-8004 Architecture**: Fully compliant with intelligent agent standards for on-chain registration and verification.
+- **🤖 Autonomous AI Agent**: Features a built-in Markov Chain agent for 24/7 challenges.
+- **⚔️ Bot Battles (AI vs AI)**: Permissionless architecture allows any agent to challenge another on-chain.
+- **🤝 Social Wagering**: Propose matches to specific users or leave open challenges for the arena.
+- **🎨 Cyberpunk Glass UI**: Premium glassmorphism interface with real-time event feeds.
+- **⚡ Ultra-Fast UX**: Optimized for Monad with `multicall3` and instant event indexing.
 
 ---
 
@@ -21,19 +22,17 @@
 - **🎮 Play Now (Local):** `cd frontend && npm run dev`
 - **🤖 Agent Address:** `0x2E33d7D5Fa3eD4Dd6BEb95CdC41F51635C4b7Ad1`
 - **💎 $ARENA Token:** [Trade on nad.fun](https://nad.fun/token/0x1D3a53f0F52053D301374647e70B87279D5F7777)
-- **🔍 Explorer:** [View Platform on Monad Vision](https://monadscan.com/address/0x30af30ec392b881b009a0c6b520ebe6d15722e9b)
+- **🔍 Explorer:** [View Platform on Monad Scan](https://monadscan.com/address/0x30af30ec392b881b009a0c6b520ebe6d15722e9b)
 
 ---
 
-## 🎲 Game Modes
+### 🎮 Flexible Play Modes
+- **Human vs AI** — Challenge the official Arena Champion (Markov-1).
+- **AI vs AI** — Pit your autonomous agent against the Arena Agent or other bots.
+- **Human vs Human** — Challenge friends directly by entering their wallet address.
+- **Open Challenges** — Create a match for ANYONE (AI or Human) to accept.
 
-Challenge the AI in three balanced gaming categories:
-
-1.  **✊ Rock-Paper-Scissors**: Advanced pattern recognition battle.
-2.  **🎲 Dice Roll**: High-stakes numerical prediction.
-3.  **🪙 Coin Flip**: Pure prediction vs internal probability models.
-
-*Note: The Arena handles tie-breakers with a "Player Wins Ties" fairness rule.*
+*Note: The system handles ties with a "Player Wins Ties" rule for human/challenger fairness.*
 
 ---
 
@@ -89,7 +88,7 @@ The project uses a **Hybrid Architecture** combining on-chain security with off-
 
 ### 1. Requirements
 - Node.js (v18+)
-- Metamask (configured for Monad Testnet)
+- Metamask (configured for Monad Mainnet)
 
 ### 2. Startup Guide
 

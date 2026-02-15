@@ -342,8 +342,6 @@ const ArenaGame = () => {
                 moveLabel = ['Rock', 'Paper', 'Scissors'][move];
             } else if (activeMatch.gameType === 1) { // Dice
                 moveLabel = `Dice ${move}`;
-            } else if (activeMatch.gameType === 2) { // Strategy
-                moveLabel = `Strategy ${move}`;
             } else if (activeMatch.gameType === 3) { // Coin
                 moveLabel = ['Heads', 'Tails'][move];
             } else if (activeMatch.gameType === 4) { // TicTacToe

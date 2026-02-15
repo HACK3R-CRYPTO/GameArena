@@ -41,7 +41,7 @@ const LandingOverlay = ({ onEnter }) => {
                     </h1>
                     <p className="text-gray-400 mb-8 max-w-lg">
                         You are entering a sovereign autonomous zone.
-                        Your mission: Outsmart the Markov-1 AI Agent in high-stakes strategy games.
+                        Your mission: Outsmart the Markov-1 AI Agent in high-stakes games.
                     </p>
 
                     <div className="flex flex-col gap-4">

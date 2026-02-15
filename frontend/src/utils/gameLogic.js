@@ -38,8 +38,6 @@ export const getMoveDisplay = (gameType, moveId) => {
     } else if (gameType === 1) { // Dice
         const diceIcons = ['?', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
         return { icon: diceIcons[moveId] || '❓', label: `Roll ${moveId}` };
-    } else if (gameType === 2) { // Strategy
-        return { icon: '🎯', label: `Strategy ${moveId}` };
     } else if (gameType === 3) { // Coin
         const move = MOVES.COIN.find(m => m.id === moveId);
         return move ? { icon: move.icon, label: move.label } : { icon: '❓', label: 'Unknown' };

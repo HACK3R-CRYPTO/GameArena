@@ -148,20 +148,35 @@ const processingAcceptance = new Set<string>();
 const activeGameLocks = new Set<string>();
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
+// RETRY HELPER: Handle temporary RPC/Network glitches
+async function withRetry<T>(fn: () => Promise<T>, label: string, retries = 3): Promise<T> {
+    for (let i = 0; i < retries; i++) {
+        try {
+            return await fn();
+        } catch (e: any) {
+            const isLast = i === retries - 1;
+            console.log(chalk.yellow(`[${label}] RPC Error (attempt ${i + 1}/${retries}): ${e.shortMessage || e.message}`));
+            if (isLast) throw e;
+            await sleep(2000 * (i + 1)); // Exponential backoff
+        }
+    }
+    throw new Error(`Failed ${label} after ${retries} retries`);
+}
+
 async function scanForMatches() {
     try {
-        const matchCounter = await publicClient.readContract({
+        const matchCounter = await withRetry(() => publicClient.readContract({
             address: ARENA_ADDRESS,
             abi: ARENA_ABI,
             functionName: 'matchCounter',
-        }) as bigint;
+        }), "matchCounter") as bigint;
 
         console.log(chalk.gray(`Scanning match history... Total matches: ${matchCounter}`));
 
         if (matchCounter === 0n) return;
 
         // BATCH FETCH: Use Multicall to get all matches in ONE request
-        const matchContracts = [];
+        const matchContracts: any[] = [];
         for (let i = 0n; i < matchCounter; i++) {
             matchContracts.push({
                 address: ARENA_ADDRESS,
@@ -171,7 +186,7 @@ async function scanForMatches() {
             });
         }
 
-        const results = await publicClient.multicall({ contracts: matchContracts });
+        const results = await withRetry(() => publicClient.multicall({ contracts: matchContracts }), "multicallMatches");
 
         for (let i = 0; i < results.length; i++) {
             const res = results[i];
@@ -213,23 +228,28 @@ async function startAgent() {
 
     // EIP-8004 Registration
     try {
-        const profile = await publicClient.readContract({
+        const profile = await withRetry(() => publicClient.readContract({
             address: REGISTRY_ADDRESS, abi: REGISTRY_ABI, functionName: 'agents', args: [account.address]
-        }) as any;
+        }), "readProfile") as any;
 
-        if (!profile[4] || profile[1] === '') { // owner check or model empty
-            console.log(chalk.yellow('📝 Registering AI Agent Profile (EIP-8004)...'));
+        const expectedDesc = "Autonomous Gaming Agent mastering 3 game types: Rock-Paper-Scissors, Dice Roll, and Coin Flip with real-time opponent modeling.";
+        const isStale = profile[2] !== expectedDesc;
+
+        if (!profile[4] || profile[1] === '' || isStale) { // owner check or model empty or stale desc
+            console.log(chalk.yellow(isStale ? '📝 Updating Stale Agent Metadata...' : '📝 Registering AI Agent Profile (EIP-8004)...'));
             const { request } = await publicClient.simulateContract({
                 address: REGISTRY_ADDRESS, abi: REGISTRY_ABI, functionName: 'registerAgent',
                 args: [
                     "Arena Champion AI",
                     "Markov-1 (Adaptive Pattern Learning)",
-                    "Autonomous Gaming Agent mastering 3 game types: Rock-Paper-Scissors, Dice Roll, and Coin Flip with real-time opponent modeling.",
+                    expectedDesc,
                     "https://moltiverse.dev"
                 ],
                 account
             });
-            await walletClient.writeContract(request);
+            const hash = await walletClient.writeContract(request);
+            console.log(chalk.gray(`TX: ${hash}`));
+            await publicClient.waitForTransactionReceipt({ hash });
             console.log(chalk.green('✅ Agent Profile Registered!'));
         } else {
             console.log(chalk.cyan(`🆔 AI Agent Profile Verified: ${profile[0]} (${profile[1]})`));
@@ -270,9 +290,9 @@ async function startAgent() {
 
                 if (activeGameLocks.has(matchIdStr)) continue;
 
-                const m = await publicClient.readContract({
+                const m = await withRetry(() => publicClient.readContract({
                     address: ARENA_ADDRESS, abi: ARENA_ABI, functionName: 'matches', args: [matchId!]
-                }) as any;
+                }), "readMatchEvent") as any;
 
                 if (m[5] !== 1) continue;
 
@@ -309,7 +329,9 @@ async function handleChallenge(matchId: bigint, challenger: string, wager: bigin
         });
         const hash = await walletClient.writeContract(request);
         console.log(chalk.green(`Match #${matchId} accepted! Hash: ${hash}`));
+        await publicClient.waitForTransactionReceipt({ hash });
     } catch (error: any) {
+        processingAcceptance.delete(matchId.toString()); // Allow retry if failed
         if (error.message?.includes('available')) {
             console.log(chalk.gray(`Match #${matchId} already accepted by someone else.`));
         } else {
@@ -329,9 +351,9 @@ async function tryPlayMove(matchId: bigint, matchData: any) {
     if (!isChallenger && !isOpponent) return;
 
     // Check if we already played
-    const hasPlayed = await publicClient.readContract({
+    const hasPlayed = await withRetry(() => publicClient.readContract({
         address: ARENA_ADDRESS, abi: ARENA_ABI, functionName: 'hasPlayed', args: [matchId, account.address]
-    }) as boolean;
+    }), "hasPlayed") as boolean;
 
     if (hasPlayed) return;
 
@@ -374,10 +396,10 @@ async function tryResolveMatch(matchId: bigint, matchData: any) {
     if (activeGameLocks.has(matchIdStr + '_resolve')) return;
 
     // Check if BOTH have played
-    const [challengerPlayed, opponentPlayed] = await Promise.all([
+    const [challengerPlayed, opponentPlayed] = await withRetry(() => Promise.all([
         publicClient.readContract({ address: ARENA_ADDRESS, abi: ARENA_ABI, functionName: 'hasPlayed', args: [matchId, matchData[1]] }),
         publicClient.readContract({ address: ARENA_ADDRESS, abi: ARENA_ABI, functionName: 'hasPlayed', args: [matchId, matchData[2]] })
-    ]) as [boolean, boolean];
+    ]), "checkBothPlayed") as [boolean, boolean];
 
     if (!challengerPlayed || !opponentPlayed) return; // Wait for both
 
@@ -386,10 +408,10 @@ async function tryResolveMatch(matchId: bigint, matchData: any) {
         console.log(chalk.cyan(`⚖️ Resolving Match #${matchId} (Global Referee Mode)...`));
 
         // specific game logic fetching
-        const [challengerMove, opponentMove] = await Promise.all([
+        const [challengerMove, opponentMove] = await withRetry(() => Promise.all([
             publicClient.readContract({ address: ARENA_ADDRESS, abi: ARENA_ABI, functionName: 'playerMoves', args: [matchId, matchData[1]] }),
             publicClient.readContract({ address: ARENA_ADDRESS, abi: ARENA_ABI, functionName: 'playerMoves', args: [matchId, matchData[2]] })
-        ]) as [number, number];
+        ]), "fetchMoves") as [number, number];
 
         const winner = determineWinner(matchData[4], matchData[1], Number(challengerMove), matchData[2], Number(opponentMove));
 
