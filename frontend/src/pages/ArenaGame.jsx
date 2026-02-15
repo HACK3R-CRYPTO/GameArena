@@ -27,7 +27,8 @@ const ArenaGame = () => {
     const [activeMatch, setActiveMatch] = useState(null);
     const [selectedMove, setSelectedMove] = useState(null);
     const [showDocs, setShowDocs] = useState(false);
-    const [activeTab, setActiveTab] = useState('chain'); // 'chain' or 'social'
+    const [activeTab, setActiveTab] = useState('chain'); // 'chain', 'social', or 'fame'
+    const [leaderboard, setLeaderboard] = useState([]);
 
     // Fetch Agent Identity (EIP-8004 Standard)
     const { data: agentBalance } = useReadContract({
@@ -201,7 +202,7 @@ const ArenaGame = () => {
             console.log('📊 Global Match Count:', Number(count));
 
             const total = Number(count);
-            const start = Math.max(0, total - 10);
+            const start = Math.max(0, total - 100); // Fetch last 100 matches
             const ids = Array.from({ length: total - start }, (_, i) => BigInt(total - 1 - i)); // Reverse order
             console.log('🆔 Fetching IDs:', ids.map(id => id.toString()));
 
@@ -240,9 +241,32 @@ const ArenaGame = () => {
             console.log('✅ Global Matches Loaded (Batch):', matchDetails.length);
             setGlobalMatches(matchDetails);
         } catch (e) {
-            console.error("Error fetching global matches:", e);
         }
     }, [publicClient]);
+
+    // Update Leaderboard whenever globalMatches changes
+    useEffect(() => {
+        if (globalMatches.length === 0) return;
+
+        const wins = {};
+        globalMatches.forEach(m => {
+            if (m.status === 2 && m.winner && m.winner !== '0x0000000000000000000000000000000000000000') {
+                const winner = m.winner.toLowerCase();
+                wins[winner] = (wins[winner] || 0) + 1;
+            }
+        });
+
+        const sorted = Object.entries(wins)
+            .map(([addr, count]) => ({
+                address: addr,
+                count,
+                isAi: addr.toLowerCase() === CONTRACT_ADDRESSES.AI_AGENT.toLowerCase()
+            }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 5);
+
+        setLeaderboard(sorted);
+    }, [globalMatches, address]);
 
     // Initial Fetch (One-time)
     useEffect(() => {
@@ -675,6 +699,14 @@ const ArenaGame = () => {
                                 >
                                     Social_Hub
                                 </button>
+                                <button
+                                    onClick={() => setActiveTab('fame')}
+                                    className={`flex-1 py-3 text-[10px] uppercase font-bold tracking-widest transition-all ${activeTab === 'fame'
+                                        ? 'text-purple-400 bg-purple-900/10 border-b-2 border-purple-500'
+                                        : 'text-gray-500 hover:text-gray-300'}`}
+                                >
+                                    Hall_of_Fame
+                                </button>
                             </div>
 
                             <div className="flex-1 overflow-hidden p-4">
@@ -716,7 +748,7 @@ const ArenaGame = () => {
                                             );
                                         })}
                                     </div>
-                                ) : (
+                                ) : activeTab === 'social' ? (
                                     <div className="h-full overflow-y-auto px-1 custom-scrollbar">
                                         <h3 className="text-xs font-bold text-gray-400 uppercase mb-3 flex items-center gap-2">
                                             <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></span>
@@ -724,7 +756,48 @@ const ArenaGame = () => {
                                         </h3>
                                         <MoltbookFeed agentAddress={CONTRACT_ADDRESSES.AI_AGENT} />
                                     </div>
-                                )}
+                                ) : activeTab === 'fame' ? (
+                                    <div className="h-full overflow-y-auto space-y-4 pr-1 custom-scrollbar">
+                                        <h3 className="text-xs font-bold text-gray-400 uppercase mb-3 flex items-center gap-2">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></span>
+                                            Arena_Champions
+                                        </h3>
+                                        {leaderboard.length === 0 ? (
+                                            <div className="text-[10px] text-gray-600 italic py-4 text-center">NO_CHAMPIONS_YET</div>
+                                        ) : (
+                                            <div className="space-y-3">
+                                                {leaderboard.map((champ, i) => (
+                                                    <div key={champ.address} className={`flex items-center justify-between p-3 rounded border transition-all ${i === 0 ? 'bg-yellow-500/10 border-yellow-500/30' :
+                                                        champ.isAi ? 'bg-purple-500/10 border-purple-500/30' : 'bg-white/5 border-white/5'
+                                                        }`}>
+                                                        <div className="flex items-center gap-3">
+                                                            <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs ${i === 0 ? 'bg-yellow-500 text-black' : 'bg-gray-800 text-gray-400'
+                                                                }`}>
+                                                                {i + 1}
+                                                            </div>
+                                                            <div>
+                                                                <div className="text-[10px] font-bold text-white flex items-center gap-1">
+                                                                    {champ.address === address?.toLowerCase() ? 'YOU' : `${champ.address.slice(0, 6)}...${champ.address.slice(-4)}`}
+                                                                    {champ.isAi && <span className="text-[8px] bg-purple-500/20 text-purple-400 px-1 rounded">AGENT</span>}
+                                                                </div>
+                                                                <div className="text-[9px] text-gray-500 uppercase tracking-tighter">Verified Arena Champion</div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <div className="text-sm font-bold text-white">{champ.count}</div>
+                                                            <div className="text-[8px] text-gray-600 uppercase">Wins</div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                        <div className="mt-4 p-4 border border-dashed border-white/10 rounded text-center">
+                                            <p className="text-[9px] text-gray-500 uppercase leading-relaxed">
+                                                Ranking is calculated in real-time based on the most recent matches.
+                                            </p>
+                                        </div>
+                                    </div>
+                                ) : null}
                             </div>
                         </div>
                     </div>
