@@ -255,33 +255,40 @@ async function startAgent() {
     }
     console.log(chalk.blue.bold('🤖 Arena AI Agent V3 (EIP-8004) Started'));
 
-    // EIP-8004 Registration
+    const REGISTRY_ADDRESS = '0x34FCEE3eFaA15750B070836F19F3970Ad20fE8d1';
+    const REGISTRY_ABI = [
+        { inputs: [{ internalType: "string", name: "agentURI", type: "string" }], name: "register", outputs: [{ internalType: "uint256", name: "", type: "uint256" }], stateMutability: "nonpayable", type: "function" },
+        { inputs: [{ internalType: "address", name: "owner", type: "address" }], name: "balanceOf", outputs: [{ internalType: "uint256", name: "", type: "uint256" }], stateMutability: "view", type: "function" }
+    ] as const;
+
+    // EIP-8004 Registration (Simpler Check)
     try {
-        const profile = await withRetry(() => publicClient.readContract({
-            address: REGISTRY_ADDRESS, abi: REGISTRY_ABI, functionName: 'agents', args: [account.address]
-        }), "readProfile") as any;
+        const balance = await publicClient.readContract({
+            address: REGISTRY_ADDRESS,
+            abi: REGISTRY_ABI,
+            functionName: 'balanceOf',
+            args: [account.address]
+        }) as bigint;
 
-        const expectedDesc = "Autonomous Gaming Agent mastering 3 game types: Rock-Paper-Scissors, Dice Roll, and Coin Flip with real-time opponent modeling.";
-        const isStale = profile[2] !== expectedDesc;
+        if (balance === 0n) {
+            console.log(chalk.yellow('📝 Registering AI Agent Profile (EIP-8004)...'));
 
-        if (!profile[4] || profile[1] === '' || isStale) { // owner check or model empty or stale desc
-            console.log(chalk.yellow(isStale ? '📝 Updating Stale Agent Metadata...' : '📝 Registering AI Agent Profile (EIP-8004)...'));
-            const { request } = await publicClient.simulateContract({
-                address: REGISTRY_ADDRESS, abi: REGISTRY_ABI, functionName: 'registerAgent',
-                args: [
-                    "Arena Champion AI",
-                    "Markov-1 (Adaptive Pattern Learning)",
-                    expectedDesc,
-                    "https://moltiverse.dev"
-                ],
+            console.log(chalk.yellow('📝 Registering AI Agent Profile (EIP-8004)...'));
+
+            // User-provided IPFS CID
+            const ipfsUri = "ipfs://bafkreig6sha4aqzafeqbocsppwobxdp3rlu7axv2rcloyh4tpw2afbj2r4";
+
+            const txHash = await walletClient.writeContract({
+                address: REGISTRY_ADDRESS,
+                abi: REGISTRY_ABI,
+                functionName: 'register',
+                args: [ipfsUri],
+                chain: MONAD_MAINNET,
                 account
             });
-            const hash = await walletClient.writeContract(request);
-            console.log(chalk.gray(`TX: ${hash}`));
-            await publicClient.waitForTransactionReceipt({ hash });
-            console.log(chalk.green('✅ Agent Profile Registered!'));
+            console.log(chalk.green(`✅ Agent Registered! TX: ${txHash}`));
         } else {
-            console.log(chalk.cyan(`🆔 AI Agent Profile Verified: ${profile[0]} (${profile[1]})`));
+            console.log(chalk.green('✅ Agent already registered (EIP-8004).'));
         }
     } catch (e) {
         console.log(chalk.gray('EIP-8004 registration check... (skipping if failed)'));

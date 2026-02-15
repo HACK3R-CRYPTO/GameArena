@@ -9,17 +9,17 @@
 
 ## 🚀 Quick Links
 
-### Live Deployments (Monad Testnet - Chain ID 10143)
-- **🤖 AI Agent Address:** `0xa91D5A0a64ED5eeF11c4359C4631279695A338ef`
-- **🎯 Arena Platform:** `0x7820903fC53197Ce02bDf9785AC04dd8e891BBb7`
-- **🆔 Agent Registry (EIP-8004):** `0x95884fe0d2a817326338735Eb4f24dD04Cf20Ea7`
+### Live Deployments (Monad Mainnet - Chain ID 143)
+- **🤖 AI Agent Address:** `0x2E33d7D5Fa3eD4Dd6BEb95CdC41F51635C4b7Ad1`
+- **🎯 Arena Platform:** `0x30af30ec392b881b009a0c6b520ebe6d15722e9b`
+- **🆔 Agent Registry (EIP-8004):** `0x34FCEE3eFaA15750B070836F19F3970Ad20fE8d1`
 - **💎 $ARENA Token:** `0x1D3a53f0F52053D301374647e70B87279D5F7777`
 
 ### Interactive Links
 - **🔥 Trade $ARENA:** [nad.fun/token/0x1D3a53f0F52053D301374647e70B87279D5F7777](https://nad.fun/token/0x1D3a53f0F52053D301374647e70B87279D5F7777)
 - **🎮 Play vs AI:** [https://game-arena-ten.vercel.app/](https://game-arena-ten.vercel.app/)
 - **🤖 Live Agent Docs:** [https://gamearena-production.up.railway.app](https://gamearena-production.up.railway.app)
-- **🔍 Explorer:** [Monad Vision](https://monadvision.com/address/0x7820903fC53197Ce02bDf9785AC04dd8e891BBb7)
+- **🔍 Explorer:** [Monad Vision](https://monadscan.com/address/0x30af30ec392b881b009a0c6b520ebe6d15722e9b)
 - **📊 GitHub:** [TournamentChain Repo](https://github.com/HACK3R-CRYPTO/GameArena)
 
 ---
@@ -51,9 +51,9 @@
 | On-chain utility | Automated wager resolution + rewards | ✅ |
 
 **Mainnet Deployment:**
-- Platform: `0x7820903fC53197Ce02bDf9785AC04dd8e891BBb7`
+- Platform: `0x30af30ec392b881b009a0c6b520ebe6d15722e9b`
 - Token: `0x1D3a53f0F52053D301374647e70B87279D5F7777`
-- Agent: `0xa91D5A0a64ED5eeF11c4359C4631279695A338ef`
+- Agent: `0x2E33d7D5Fa3eD4Dd6BEb95CdC41F51635C4b7Ad1`
 
 ### Gaming Arena Agent Bounty ($10K) ✅
 | PRD Requirement | Implementation | Status |

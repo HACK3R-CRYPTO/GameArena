@@ -12,6 +12,8 @@ import MoltbookFeed from '../components/MoltbookFeed';
 
 
 
+// SplashScreen removed as per user request (handled by LandingOverlay)
+
 const ArenaGame = () => {
     const { address, isConnected, chainId } = useAccount();
     const { data: balance, isError, isLoading } = useBalance({ address });
@@ -27,13 +29,15 @@ const ArenaGame = () => {
     const [showDocs, setShowDocs] = useState(false);
     const [activeTab, setActiveTab] = useState('chain'); // 'chain' or 'social'
 
-    // Fetch Agent Identity (EIP-8004)
-    const { data: agentProfile } = useReadContract({
+    // Fetch Agent Identity (EIP-8004 Standard)
+    const { data: agentBalance } = useReadContract({
         address: CONTRACT_ADDRESSES.AGENT_REGISTRY,
-        abi: AGENT_REGISTRY_ABI,
-        functionName: 'agents',
+        abi: [{ inputs: [{ internalType: "address", name: "owner", type: "address" }], name: "balanceOf", outputs: [{ internalType: "uint256", name: "", type: "uint256" }], stateMutability: "view", type: "function" }],
+        functionName: 'balanceOf',
         args: [CONTRACT_ADDRESSES.AI_AGENT]
     });
+
+    const agentProfile = agentBalance && agentBalance > 0n ? { active: true } : null;
 
     const { writeContractAsync: writeArena } = useWriteContract();
 
@@ -462,315 +466,319 @@ const ArenaGame = () => {
     };
 
     return (
-        <div className="font-mono text-gray-300">
-            <DocsModal isOpen={showDocs} onClose={() => setShowDocs(false)} />
-            {/* Header / Stats Bar */}
-            <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold text-white tracking-tighter">ARENA_1v1</h1>
-                    <div className="flex items-center gap-4 mt-1">
-                        <p className="text-xs text-gray-500">PROTOCOL_ID: {CONTRACT_ADDRESSES.ARENA_PLATFORM.slice(0, 8)}...</p>
-                        <button
-                            onClick={() => setShowDocs(true)}
-                            className="flex items-center gap-1.5 text-[10px] text-purple-400 hover:text-purple-300 transition-colors uppercase font-bold border border-purple-500/30 px-2 py-0.5 rounded bg-purple-900/10 hover:bg-purple-900/30"
+        <>
+            <div className="font-mono text-gray-300">
+                <DocsModal isOpen={showDocs} onClose={() => setShowDocs(false)} />
+                {/* Header / Stats Bar */}
+                <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
+                    <div>
+                        <h1 className="text-3xl font-bold text-white tracking-tighter">🦞 ARENA_1v1</h1>
+                        <div className="flex items-center gap-4 mt-1">
+                            <p className="text-xs text-gray-500">PROTOCOL_ID: {CONTRACT_ADDRESSES.ARENA_PLATFORM.slice(0, 8)}...</p>
+                            <button
+                                onClick={() => setShowDocs(true)}
+                                className="flex items-center gap-1.5 text-[10px] text-purple-400 hover:text-purple-300 transition-colors uppercase font-bold border border-purple-500/30 px-2 py-0.5 rounded bg-purple-900/10 hover:bg-purple-900/30"
+                            >
+                                <BookOpen size={12} />
+                                [ SYSTEM_DOCS ]
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="flex gap-4">
+                        <div className="bg-[#0a0a0a] border border-white/10 px-4 py-2 rounded min-w-[140px]">
+                            <span className="text-[10px] text-gray-500 block uppercase">Balance</span>
+                            <div className="text-white font-bold text-sm font-mono">
+                                {balance ? Number(formatEther(balance.value)).toFixed(4) : '--'} <span className="text-purple-500">MON</span>
+                            </div>
+                        </div>
+                        <div className="bg-[#0a0a0a] border border-white/10 px-4 py-2 rounded flex flex-col items-end">
+                            <span className="text-[10px] text-gray-500 block uppercase flex items-center gap-1">
+                                <span className={`w-1.5 h-1.5 rounded-full ${agentProfile?.active ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                                AGENT_STATUS
+                            </span>
+                            <div className={`font-bold text-sm font-mono ${agentProfile?.active ? 'text-green-400' : 'text-purple-500'}`}>
+                                {agentProfile?.active ? 'ONLINE' : 'OFFLINE'}
+                            </div>
+                        </div>
+                        <a
+                            href="https://nad.fun/tokens/0x2117449eA6630857D4D656D0D2f5e1C689C67777"
+                            target="_blank"
+                            className="bg-purple-900/20 border border-purple-500/30 px-4 py-2 rounded flex flex-col items-center justify-center hover:bg-purple-900/40 transition-colors group"
                         >
-                            <BookOpen size={12} />
-                            [ SYSTEM_DOCS ]
-                        </button>
+                            <span className="text-[10px] text-purple-300 block uppercase font-bold group-hover:text-white">BUY $ARENA</span>
+                            <span className="text-xs text-purple-400 font-mono">nad.fun</span>
+                        </a>
                     </div>
                 </div>
 
-                <div className="flex gap-4">
-                    <div className="bg-[#0a0a0a] border border-white/10 px-4 py-2 rounded min-w-[140px]">
-                        <span className="text-[10px] text-gray-500 block uppercase">Balance</span>
-                        <div className="text-white font-bold text-sm font-mono">
-                            {balance ? Number(formatEther(balance.value)).toFixed(4) : '--'} <span className="text-purple-500">MON</span>
-                        </div>
-                    </div>
-                    <div className="bg-[#0a0a0a] border border-white/10 px-4 py-2 rounded flex flex-col items-end">
-                        <span className="text-[10px] text-gray-500 block uppercase flex items-center gap-1">
-                            <span className={`w-1.5 h-1.5 rounded-full ${agentProfile?.[6] ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                            Agent_Status
-                        </span>
-                        <span className="text-purple-400 font-bold text-sm">{agentProfile?.[6] ? 'ONLINE' : 'OFFLINE'}</span>
-                    </div>
-                    <a
-                        href="https://nad.fun/tokens/0x2117449eA6630857D4D656D0D2f5e1C689C67777"
-                        target="_blank"
-                        className="bg-purple-900/20 border border-purple-500/30 px-4 py-2 rounded flex flex-col items-center justify-center hover:bg-purple-900/40 transition-colors group"
-                    >
-                        <span className="text-[10px] text-purple-300 block uppercase font-bold group-hover:text-white">BUY $ARENA</span>
-                        <span className="text-xs text-purple-400 font-mono">nad.fun</span>
-                    </a>
-                </div>
-            </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* LEFT COLUMN: Game Interaction */}
+                    <div className="lg:col-span-2 space-y-6">
+                        {/* Main Game Card */}
+                        <div className="bg-[#0a0a0a] border border-white/10 rounded-lg p-6 relative overflow-hidden group hover:border-purple-500/30 transition-colors">
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-blue-500 opacity-20"></div>
 
-                {/* LEFT COLUMN: Game Interaction */}
-                <div className="lg:col-span-2 space-y-6">
-                    {/* Main Game Card */}
-                    <div className="bg-[#0a0a0a] border border-white/10 rounded-lg p-6 relative overflow-hidden group hover:border-purple-500/30 transition-colors">
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-blue-500 opacity-20"></div>
-
-                        <div className="mb-8 text-center">
-                            <div className="w-16 h-16 mx-auto bg-purple-900/20 rounded-full border border-purple-500/20 flex items-center justify-center text-3xl mb-4">
-                                🤖
+                            <div className="mb-8 text-center">
+                                <div className="w-16 h-16 mx-auto bg-purple-900/20 rounded-full border border-purple-500/20 flex items-center justify-center text-3xl mb-4">
+                                    🤖
+                                </div>
+                                <h2 className="text-xl font-bold text-white mb-2">CHALLENGE_THE_AI</h2>
+                                <p className="text-xs text-gray-500 max-w-sm mx-auto leading-relaxed">
+                                    {agentProfile?.[2] || "Autonomous agent initialized. Select game type to begin."}
+                                </p>
                             </div>
-                            <h2 className="text-xl font-bold text-white mb-2">CHALLENGE_THE_AI</h2>
-                            <p className="text-xs text-gray-500 max-w-sm mx-auto leading-relaxed">
-                                {agentProfile?.[2] || "Autonomous agent initialized. Select game type to begin."}
-                            </p>
-                        </div>
 
-                        {/* Game Selection */}
-                        <div className="grid grid-cols-3 gap-3 mb-6">
-                            {GAME_TYPES.map(g => (
-                                <button
-                                    key={g.id}
-                                    onClick={() => setSelectedGameType(g.id)}
-                                    className={`p-4 rounded border transition-all ${selectedGameType === g.id
-                                        ? 'bg-purple-900/20 border-purple-500 text-white'
-                                        : 'bg-black border-white/5 text-gray-500 hover:border-white/20 hover:text-gray-300'
-                                        }`}
-                                >
-                                    <div className="text-2xl mb-2">{g.icon}</div>
-                                    <div className="text-[10px] uppercase tracking-wider font-bold">{g.label}</div>
+                            {/* Game Selection */}
+                            <div className="grid grid-cols-3 gap-3 mb-6">
+                                {GAME_TYPES.map(g => (
+                                    <button
+                                        key={g.id}
+                                        onClick={() => setSelectedGameType(g.id)}
+                                        className={`p-4 rounded border transition-all ${selectedGameType === g.id
+                                            ? 'bg-purple-900/20 border-purple-500 text-white'
+                                            : 'bg-black border-white/5 text-gray-500 hover:border-white/20 hover:text-gray-300'
+                                            }`}
+                                    >
+                                        <div className="text-2xl mb-2">{g.icon}</div>
+                                        <div className="text-[10px] uppercase tracking-wider font-bold">{g.label}</div>
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Wager Input */}
+                            <div className="bg-black/50 border border-white/5 rounded p-4 mb-6">
+                                <div className="flex justify-between text-[10px] text-gray-500 uppercase mb-2">
+                                    <span>Wager Amount</span>
+                                    <span>Potential Win: <span className="text-green-400">{(parseFloat(wager || '0') * 2 * 0.98).toFixed(3)} MON</span></span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-purple-500 font-bold">MON</span>
+                                    <input
+                                        type="number"
+                                        value={wager}
+                                        onChange={(e) => setWager(e.target.value)}
+                                        className="bg-transparent border-none text-white text-xl font-bold w-full focus:ring-0 placeholder-gray-700"
+                                        placeholder="0.00"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Action Buitton */}
+                            {!isConnected ? (
+                                <button onClick={() => open()} className="w-full py-4 bg-white/5 border border-white/10 rounded text-sm font-bold hover:bg-white/10 transition-all uppercase">
+                                    Connect Wallet
                                 </button>
-                            ))}
+                            ) : (
+                                <button
+                                    onClick={handleChallengeAgent}
+                                    disabled={loading || !wager}
+                                    className="w-full py-4 bg-purple-600 hover:bg-purple-500 text-white rounded text-sm font-bold transition-all uppercase disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(147,51,234,0.3)]"
+                                >
+                                    {loading ? 'PROCESSING...' : 'INITIATE_CHALLENGE'}
+                                </button>
+                            )}
                         </div>
-
-                        {/* Wager Input */}
-                        <div className="bg-black/50 border border-white/5 rounded p-4 mb-6">
-                            <div className="flex justify-between text-[10px] text-gray-500 uppercase mb-2">
-                                <span>Wager Amount</span>
-                                <span>Potential Win: <span className="text-green-400">{(parseFloat(wager || '0') * 2 * 0.98).toFixed(3)} MON</span></span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <span className="text-purple-500 font-bold">MON</span>
-                                <input
-                                    type="number"
-                                    value={wager}
-                                    onChange={(e) => setWager(e.target.value)}
-                                    className="bg-transparent border-none text-white text-xl font-bold w-full focus:ring-0 placeholder-gray-700"
-                                    placeholder="0.00"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Action Buitton */}
-                        {!isConnected ? (
-                            <button onClick={() => open()} className="w-full py-4 bg-white/5 border border-white/10 rounded text-sm font-bold hover:bg-white/10 transition-all uppercase">
-                                Connect Wallet
-                            </button>
-                        ) : (
-                            <button
-                                onClick={handleChallengeAgent}
-                                disabled={loading || !wager}
-                                className="w-full py-4 bg-purple-600 hover:bg-purple-500 text-white rounded text-sm font-bold transition-all uppercase disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(147,51,234,0.3)]"
-                            >
-                                {loading ? 'PROCESSING...' : 'INITIATE_CHALLENGE'}
-                            </button>
-                        )}
-                    </div>
-                </div>
-
-                {/* RIGHT COLUMN: Live Data */}
-                <div className="space-y-4">
-                    {/* Active Games Panel */}
-                    <div className="bg-[#0a0a0a] border border-white/10 rounded-lg p-4 h-[200px] overflow-y-auto">
-                        <h3 className="text-xs font-bold text-gray-400 uppercase mb-3 flex items-center justify-between">
-                            <span>Your_Matches</span>
-                            {matches.length > 0 && <span className="text-green-500 text-[10px]">{matches.length} ACTIVE</span>}
-                        </h3>
-
-                        {matches.length === 0 ? (
-                            <div className="h-full flex items-center justify-center text-[10px] text-gray-600 italic">
-                                NO_ACTIVE_MATCHES
-                            </div>
-                        ) : (
-                            <div className="space-y-2">
-                                {matches.map(m => {
-                                    const isWinner = m.status === 2 && m.winner?.toLowerCase() === address?.toLowerCase();
-                                    const isLoser = m.status === 2 && m.winner?.toLowerCase() !== address?.toLowerCase() && m.winner !== '0x0000000000000000000000000000000000000000';
-                                    const isTie = m.status === 2 && m.winner === '0x0000000000000000000000000000000000000000';
-
-                                    // Determine moves
-                                    const isChallenger = m.challenger?.toLowerCase() === address?.toLowerCase();
-                                    const myMoveId = isChallenger ? m.challengerMove : m.opponentMove;
-                                    const oppMoveId = isChallenger ? m.opponentMove : m.challengerMove;
-
-                                    const myMove = getMoveDisplay(m.gameType, myMoveId);
-                                    const oppMove = getMoveDisplay(m.gameType, oppMoveId);
-
-                                    return (
-                                        <div key={m.id} className="bg-white/5 border border-white/5 rounded p-2 text-xs flex justify-between items-center group hover:border-white/20 transition-colors">
-                                            <div className="flex items-center gap-3">
-                                                <div className="flex flex-col items-center gap-1 min-w-[20px]">
-                                                    <span className="text-base">{GAME_TYPES.find(g => g.id === m.gameType)?.icon || '❓'}</span>
-                                                </div>
-                                                <div>
-                                                    <div className="font-bold text-gray-300 flex items-center gap-2">
-                                                        <span>#{m.id}</span>
-                                                        {m.status === 2 && (
-                                                            <span className="text-gray-500 font-mono text-[10px] bg-black/30 px-1 rounded border border-white/5">
-                                                                {myMove.icon} vs {oppMove.icon}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    <div className="text-[10px] text-gray-500">{MATCH_STATUS[m.status]}</div>
-                                                </div>
-                                            </div>
-                                            <div className="text-right flex flex-col items-end">
-                                                <div className="text-purple-400 font-bold">{formatEther(m.wager)}</div>
-
-                                                {m.status === 1 && (
-                                                    <button
-                                                        onClick={() => setActiveMatch(m)}
-                                                        className="text-[9px] bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded mt-0.5 hover:bg-purple-500/40 border border-purple-500/30 font-bold"
-                                                    >
-                                                        PLAY_MOVE
-                                                    </button>
-                                                )}
-
-                                                {m.status === 2 && (
-                                                    <span className={`text-[9px] px-1.5 py-0.5 rounded mt-0.5 font-bold border ${isWinner ? 'bg-green-500/20 text-green-400 border-green-500/30' :
-                                                        isLoser ? 'bg-red-500/20 text-red-400 border-red-500/30' :
-                                                            'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
-                                                        }`}>
-                                                        {isWinner ? 'YOU WON' : isLoser ? 'YOU LOST' : 'TIE GAME'}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
                     </div>
 
-                    {/* Global Feed / Social Panel */}
-                    <div className="bg-[#0a0a0a] border border-white/10 rounded-lg h-[450px] overflow-hidden flex flex-col">
-                        <div className="flex border-b border-white/5">
-                            <button
-                                onClick={() => setActiveTab('chain')}
-                                className={`flex-1 py-3 text-[10px] uppercase font-bold tracking-widest transition-all ${activeTab === 'chain'
-                                    ? 'text-purple-400 bg-purple-900/10 border-b-2 border-purple-500'
-                                    : 'text-gray-500 hover:text-gray-300'}`}
-                            >
-                                On_Chain_Events
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('social')}
-                                className={`flex-1 py-3 text-[10px] uppercase font-bold tracking-widest transition-all ${activeTab === 'social'
-                                    ? 'text-purple-400 bg-purple-900/10 border-b-2 border-purple-500'
-                                    : 'text-gray-500 hover:text-gray-300'}`}
-                            >
-                                Social_Hub
-                            </button>
-                        </div>
+                    {/* RIGHT COLUMN: Live Data */}
+                    <div className="space-y-4">
+                        {/* Active Games Panel */}
+                        <div className="bg-[#0a0a0a] border border-white/10 rounded-lg p-4 h-[200px] overflow-y-auto">
+                            <h3 className="text-xs font-bold text-gray-400 uppercase mb-3 flex items-center justify-between">
+                                <span>Your_Matches</span>
+                                {matches.length > 0 && <span className="text-green-500 text-[10px]">{matches.length} ACTIVE</span>}
+                            </h3>
 
-                        <div className="flex-1 overflow-hidden p-4">
-                            {activeTab === 'chain' ? (
-                                <div className="h-full overflow-y-auto space-y-2 pr-1 custom-scrollbar">
-                                    <h3 className="text-xs font-bold text-gray-400 uppercase mb-3 flex items-center gap-2">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                                        Live_History
-                                    </h3>
-                                    {globalMatches.map(m => {
-                                        const isMeChallenger = m.challenger?.toLowerCase() === address?.toLowerCase();
-                                        const isMeOpponent = m.opponent?.toLowerCase() === address?.toLowerCase();
+                            {matches.length === 0 ? (
+                                <div className="h-full flex items-center justify-center text-[10px] text-gray-600 italic">
+                                    NO_ACTIVE_MATCHES
+                                </div>
+                            ) : (
+                                <div className="space-y-2">
+                                    {matches.map(m => {
+                                        const isWinner = m.status === 2 && m.winner?.toLowerCase() === address?.toLowerCase();
+                                        const isLoser = m.status === 2 && m.winner?.toLowerCase() !== address?.toLowerCase() && m.winner !== '0x0000000000000000000000000000000000000000';
+                                        const isTie = m.status === 2 && m.winner === '0x0000000000000000000000000000000000000000';
 
-                                        const challengerDisplay = isMeChallenger ? 'YOU' : `${m.challenger.slice(0, 4)}...${m.challenger.slice(-4)}`;
-                                        const opponentDisplay = isMeOpponent ? 'YOU' : `${m.opponent.slice(0, 4)}...${m.opponent.slice(-4)}`;
+                                        // Determine moves
+                                        const isChallenger = m.challenger?.toLowerCase() === address?.toLowerCase();
+                                        const myMoveId = isChallenger ? m.challengerMove : m.opponentMove;
+                                        const oppMoveId = isChallenger ? m.opponentMove : m.challengerMove;
 
-                                        const isAiWinner = m.winner?.toLowerCase() === CONTRACT_ADDRESSES.AI_AGENT.toLowerCase();
+                                        const myMove = getMoveDisplay(m.gameType, myMoveId);
+                                        const oppMove = getMoveDisplay(m.gameType, oppMoveId);
 
                                         return (
-                                            <div key={m.id} className="text-[10px] font-mono border-l-2 border-white/10 pl-2 py-2 hover:border-purple-500 transition-colors bg-white/[0.02] rounded-r">
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-500">#{m.id}</span>
-                                                    <span className="text-gray-600 font-bold">{GAME_TYPES.find(g => g.id === m.gameType)?.label}</span>
+                                            <div key={m.id} className="bg-white/5 border border-white/5 rounded p-2 text-xs flex justify-between items-center group hover:border-white/20 transition-colors">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="flex flex-col items-center gap-1 min-w-[20px]">
+                                                        <span className="text-base">{GAME_TYPES.find(g => g.id === m.gameType)?.icon || '❓'}</span>
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-bold text-gray-300 flex items-center gap-2">
+                                                            <span>#{m.id}</span>
+                                                            {m.status === 2 && (
+                                                                <span className="text-gray-500 font-mono text-[10px] bg-black/30 px-1 rounded border border-white/5">
+                                                                    {myMove.icon} vs {oppMove.icon}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <div className="text-[10px] text-gray-500">{MATCH_STATUS[m.status]}</div>
+                                                    </div>
                                                 </div>
-                                                <div className="text-gray-300 truncate font-bold text-xs my-0.5">
-                                                    <span className={isMeChallenger ? "text-purple-400" : ""}>{challengerDisplay}</span>
-                                                    <span className="text-gray-600 mx-1">vs</span>
-                                                    <span className={isMeOpponent ? "text-purple-400" : ""}>{opponentDisplay}</span>
-                                                </div>
-                                                <div className="flex justify-between mt-1 items-center">
-                                                    <span className="text-gray-500 font-bold">{formatEther(m.wager)} MON</span>
-                                                    <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${m.status === 2
-                                                        ? (isAiWinner ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-green-500/10 text-green-400 border border-green-500/20')
-                                                        : 'bg-white/5 text-gray-500'}`}>
-                                                        {m.status === 2 ? (isAiWinner ? 'AI_WIN' : 'PLAYER_WIN') : 'WAITING...'}
-                                                    </span>
+                                                <div className="text-right flex flex-col items-end">
+                                                    <div className="text-purple-400 font-bold">{formatEther(m.wager)}</div>
+
+                                                    {m.status === 1 && (
+                                                        <button
+                                                            onClick={() => setActiveMatch(m)}
+                                                            className="text-[9px] bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded mt-0.5 hover:bg-purple-500/40 border border-purple-500/30 font-bold"
+                                                        >
+                                                            PLAY_MOVE
+                                                        </button>
+                                                    )}
+
+                                                    {m.status === 2 && (
+                                                        <span className={`text-[9px] px-1.5 py-0.5 rounded mt-0.5 font-bold border ${isWinner ? 'bg-green-500/20 text-green-400 border-green-500/30' :
+                                                            isLoser ? 'bg-red-500/20 text-red-400 border-red-500/30' :
+                                                                'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
+                                                            }`}>
+                                                            {isWinner ? 'YOU WON' : isLoser ? 'YOU LOST' : 'TIE GAME'}
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </div>
                                         );
                                     })}
                                 </div>
-                            ) : (
-                                <div className="h-full overflow-y-auto px-1 custom-scrollbar">
-                                    <h3 className="text-xs font-bold text-gray-400 uppercase mb-3 flex items-center gap-2">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></span>
-                                        Build_In_Public
-                                    </h3>
-                                    <MoltbookFeed agentAddress={CONTRACT_ADDRESSES.AI_AGENT} />
-                                </div>
                             )}
                         </div>
-                    </div>
-                </div>
-            </div>
 
-            {/* Modal - Terminal Style */}
-            {activeMatch && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-[#0a0a0a] border border-purple-500/50 rounded w-full max-w-lg shadow-[0_0_50px_rgba(139,92,246,0.1)]">
-                        <div className="bg-purple-900/10 border-b border-purple-500/20 p-4 flex justify-between items-center">
-                            <h3 className="text-purple-400 font-bold tracking-wider">{">> "} EXECUTE_MOVE</h3>
-                            <button onClick={() => setActiveMatch(null)} className="text-gray-500 hover:text-white">✕</button>
-                        </div>
-
-                        <div className="p-8">
-                            <div className="text-center mb-8">
-                                <div className="text-sm text-gray-500 mb-1">MATCH_ID: #{activeMatch.id}</div>
-                                <div className="text-2xl font-bold text-white mb-2">{GAME_TYPES.find(g => g.id === activeMatch.gameType)?.label}</div>
-                                <div className="inline-block bg-purple-500/10 text-purple-300 px-3 py-1 rounded text-xs border border-purple-500/20">
-                                    STAKE: {formatEther(activeMatch.wager)} MON
-                                </div>
+                        {/* Global Feed / Social Panel */}
+                        <div className="bg-[#0a0a0a] border border-white/10 rounded-lg h-[450px] overflow-hidden flex flex-col">
+                            <div className="flex border-b border-white/5">
+                                <button
+                                    onClick={() => setActiveTab('chain')}
+                                    className={`flex-1 py-3 text-[10px] uppercase font-bold tracking-widest transition-all ${activeTab === 'chain'
+                                        ? 'text-purple-400 bg-purple-900/10 border-b-2 border-purple-500'
+                                        : 'text-gray-500 hover:text-gray-300'}`}
+                                >
+                                    On_Chain_Events
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('social')}
+                                    className={`flex-1 py-3 text-[10px] uppercase font-bold tracking-widest transition-all ${activeTab === 'social'
+                                        ? 'text-purple-400 bg-purple-900/10 border-b-2 border-purple-500'
+                                        : 'text-gray-500 hover:text-gray-300'}`}
+                                >
+                                    Social_Hub
+                                </button>
                             </div>
 
-                            {activeMatch.gameType === 1 ? (
-                                <button
-                                    onClick={() => {
-                                        const roll = Math.floor(Math.random() * 6) + 1;
-                                        handlePlayMove(activeMatch.id, roll);
-                                    }}
-                                    className="w-full py-6 bg-white/5 border border-white/10 hover:bg-white/10 hover:border-purple-500/50 rounded flex flex-col items-center gap-2 group transition-all"
-                                >
-                                    <span className="text-4xl group-hover:scale-110 transition-transform">🎲</span>
-                                    <span className="text-sm font-bold uppercase">ROLL_DICE_RNG</span>
-                                </button>
-                            ) : (
-                                <div className="grid grid-cols-3 gap-3">
-                                    {(activeMatch.gameType === 0 ? MOVES.RPS : MOVES.COIN).map((m) => (
-                                        <button
-                                            key={m.id}
-                                            onClick={() => handlePlayMove(activeMatch.id, m.id)}
-                                            className="p-4 bg-white/5 border border-white/10 hover:bg-white/10 hover:border-purple-500/50 rounded flex flex-col items-center gap-2 transition-all"
-                                        >
-                                            <span className="text-2xl">{m.icon}</span>
-                                            <span className="text-[10px] font-bold uppercase">{m.label}</span>
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
+                            <div className="flex-1 overflow-hidden p-4">
+                                {activeTab === 'chain' ? (
+                                    <div className="h-full overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                                        <h3 className="text-xs font-bold text-gray-400 uppercase mb-3 flex items-center gap-2">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                                            Live_History
+                                        </h3>
+                                        {globalMatches.map(m => {
+                                            const isMeChallenger = m.challenger?.toLowerCase() === address?.toLowerCase();
+                                            const isMeOpponent = m.opponent?.toLowerCase() === address?.toLowerCase();
+
+                                            const challengerDisplay = isMeChallenger ? 'YOU' : `${m.challenger.slice(0, 4)}...${m.challenger.slice(-4)}`;
+                                            const opponentDisplay = isMeOpponent ? 'YOU' : `${m.opponent.slice(0, 4)}...${m.opponent.slice(-4)}`;
+
+                                            const isAiWinner = m.winner?.toLowerCase() === CONTRACT_ADDRESSES.AI_AGENT.toLowerCase();
+
+                                            return (
+                                                <div key={m.id} className="text-[10px] font-mono border-l-2 border-white/10 pl-2 py-2 hover:border-purple-500 transition-colors bg-white/[0.02] rounded-r">
+                                                    <div className="flex justify-between">
+                                                        <span className="text-gray-500">#{m.id}</span>
+                                                        <span className="text-gray-600 font-bold">{GAME_TYPES.find(g => g.id === m.gameType)?.label}</span>
+                                                    </div>
+                                                    <div className="text-gray-300 truncate font-bold text-xs my-0.5">
+                                                        <span className={isMeChallenger ? "text-purple-400" : ""}>{challengerDisplay}</span>
+                                                        <span className="text-gray-600 mx-1">vs</span>
+                                                        <span className={isMeOpponent ? "text-purple-400" : ""}>{opponentDisplay}</span>
+                                                    </div>
+                                                    <div className="flex justify-between mt-1 items-center">
+                                                        <span className="text-gray-500 font-bold">{formatEther(m.wager)} MON</span>
+                                                        <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${m.status === 2
+                                                            ? (isAiWinner ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-green-500/10 text-green-400 border border-green-500/20')
+                                                            : 'bg-white/5 text-gray-500'}`}>
+                                                            {m.status === 2 ? (isAiWinner ? 'AI_WIN' : 'PLAYER_WIN') : 'WAITING...'}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                ) : (
+                                    <div className="h-full overflow-y-auto px-1 custom-scrollbar">
+                                        <h3 className="text-xs font-bold text-gray-400 uppercase mb-3 flex items-center gap-2">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></span>
+                                            Build_In_Public
+                                        </h3>
+                                        <MoltbookFeed agentAddress={CONTRACT_ADDRESSES.AI_AGENT} />
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
-            )}
-        </div>
+
+                {/* Modal - Terminal Style */}
+                {activeMatch && (
+                    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                        <div className="bg-[#0a0a0a] border border-purple-500/50 rounded w-full max-w-lg shadow-[0_0_50px_rgba(139,92,246,0.1)]">
+                            <div className="bg-purple-900/10 border-b border-purple-500/20 p-4 flex justify-between items-center">
+                                <h3 className="text-purple-400 font-bold tracking-wider">{">> "} EXECUTE_MOVE</h3>
+                                <button onClick={() => setActiveMatch(null)} className="text-gray-500 hover:text-white">✕</button>
+                            </div>
+
+                            <div className="p-8">
+                                <div className="text-center mb-8">
+                                    <div className="text-sm text-gray-500 mb-1">MATCH_ID: #{activeMatch.id}</div>
+                                    <div className="text-2xl font-bold text-white mb-2">{GAME_TYPES.find(g => g.id === activeMatch.gameType)?.label}</div>
+                                    <div className="inline-block bg-purple-500/10 text-purple-300 px-3 py-1 rounded text-xs border border-purple-500/20">
+                                        STAKE: {formatEther(activeMatch.wager)} MON
+                                    </div>
+                                </div>
+
+                                {activeMatch.gameType === 1 ? (
+                                    <button
+                                        onClick={() => {
+                                            const roll = Math.floor(Math.random() * 6) + 1;
+                                            handlePlayMove(activeMatch.id, roll);
+                                        }}
+                                        className="w-full py-6 bg-white/5 border border-white/10 hover:bg-white/10 hover:border-purple-500/50 rounded flex flex-col items-center gap-2 group transition-all"
+                                    >
+                                        <span className="text-4xl group-hover:scale-110 transition-transform">🎲</span>
+                                        <span className="text-sm font-bold uppercase">ROLL_DICE_RNG</span>
+                                    </button>
+                                ) : (
+                                    <div className="grid grid-cols-3 gap-3">
+                                        {(activeMatch.gameType === 0 ? MOVES.RPS : MOVES.COIN).map((m) => (
+                                            <button
+                                                key={m.id}
+                                                onClick={() => handlePlayMove(activeMatch.id, m.id)}
+                                                className="p-4 bg-white/5 border border-white/10 hover:bg-white/10 hover:border-purple-500/50 rounded flex flex-col items-center gap-2 transition-all"
+                                            >
+                                                <span className="text-2xl">{m.icon}</span>
+                                                <span className="text-[10px] font-bold uppercase">{m.label}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </>
     );
 }
 

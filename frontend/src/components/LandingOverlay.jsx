@@ -36,8 +36,11 @@ const LandingOverlay = ({ onEnter }) => {
                 </div>
 
                 <div className={`transition-opacity duration-1000 ${showButton ? 'opacity-100' : 'opacity-0'}`}>
-                    <h1 className="text-4xl md:text-6xl font-bold text-white mb-4 tracking-tighter">
-                        ARENA_AGENT
+                    <div className="text-6xl mb-4 animate-bounce">
+                        🦞
+                    </div>
+                    <h1 className="text-4xl md:text-6xl font-bold text-white mb-4 tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
+                        ARENA_CHAMPION
                     </h1>
                     <p className="text-gray-400 mb-8 max-w-lg">
                         You are entering a sovereign autonomous zone.

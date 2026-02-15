@@ -2,23 +2,22 @@
 export const CONTRACT_ADDRESSES = {
   ARENA_PLATFORM: import.meta.env.VITE_ARENA_PLATFORM_ADDRESS || '0x30af30ec392b881b009a0c6b520ebe6d15722e9b',
   AI_AGENT: import.meta.env.VITE_AI_AGENT_ADDRESS || '0x2E33d7D5Fa3eD4Dd6BEb95CdC41F51635C4b7Ad1',
-  AGENT_REGISTRY: import.meta.env.VITE_AGENT_REGISTRY_ADDRESS || '0x95884fe0d2a817326338735Eb4f24dD04Cf20Ea7',
+  AGENT_REGISTRY: import.meta.env.VITE_AGENT_REGISTRY_ADDRESS || '0x34FCEE3eFaA15750B070836F19F3970Ad20fE8d1',
   ARENA_TOKEN: import.meta.env.VITE_ARENA_TOKEN_ADDRESS || '0x2117449ea6630857d4d656d0d2f5e1c689c67777',
 };
 
 export const AGENT_REGISTRY_ABI = [
   {
-    "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
-    "name": "agents",
-    "outputs": [
-      { "internalType": "string", "name": "name", "type": "string" },
-      { "internalType": "string", "name": "model", "type": "string" },
-      { "internalType": "string", "name": "description", "type": "string" },
-      { "internalType": "string", "name": "metadataUri", "type": "string" },
-      { "internalType": "address", "name": "owner", "type": "address" },
-      { "internalType": "uint256", "name": "registeredAt", "type": "uint256" },
-      { "internalType": "bool", "name": "active", "type": "bool" }
-    ],
+    "inputs": [{ "internalType": "address", "name": "owner", "type": "address" }],
+    "name": "balanceOf",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "tokenId", "type": "uint256" }],
+    "name": "tokenURI",
+    "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
     "stateMutability": "view",
     "type": "function"
   }

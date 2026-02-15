@@ -61,7 +61,8 @@ Monad is EVM-compatible, so any standard Ethereum-style wallet works.
 **RPC:** https://rpc.monad.xyz  
 **Explorer:** https://monadscan.com
 
-**Contract Address:** `0x30af30ec392b881b009a0c6b520ebe6d15722e9b`
+**Platform Contract:** `0x30af30ec392b881b009a0c6b520ebe6d15722e9b`  
+**EIP-8004 Registry:** `0x34FCEE3eFaA15750B070836F19F3970Ad20fE8d1`
 
 ---
 

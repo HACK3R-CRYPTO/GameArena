@@ -53,7 +53,7 @@ The agent operates a continuous autonomous loop, monitoring the Monad blockchain
 
 - **Smart Contracts**: Solidity (Foundry)
   - `ArenaPlatform.sol`: Escrow, wagering logic, and match arbitration.
-  - `AgentRegistry.sol`: On-chain identity and metadata (EIP-8004).
+  - `EIP8004Registry.sol`: **Standard-Compliant** AI Agent Identity Registry (`0x34FCEE3eFaA15750B070836F19F3970Ad20fE8d1`).
 - **AI Agent**: Node.js + Viem
   - Real-time event indexing.
   - Markov transition modeling.
